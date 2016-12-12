@@ -1,0 +1,39 @@
+## Availability Model Toolkit Compiler
+
+### Input Formats
+The following input formats are currenty supported. You can create your own
+format by implementing the `Loader` interface. For more details, please see
+the documentation in the `loader` module's `__init__.py` file.
+
+#### CSV Input Format
+###### Introduction
+This section outlines the specification requirements for the CSV
+(Comma Separated Values) input format.
+
+The CSV format is the simpler and most common way to import/export spreadsheet
+and database data. The files are plain text files containing one row per
+record. The record fields themselves are separated by a predefined delimiter
+(most commonly a comma `,` but a semicolon `;` or a `TAB` are also valid
+options).
+
+Each CSV file can represent one database table or one spreadsheet sheet. This
+means that you cannot have multiple tables or sheets in one file.
+
+###### Model definition
+Due to the aforementioned "limitation" of CSV files, you will need to define
+(or generate) a collection of CSV files to describe the model, one file per
+schema item.
+
+The requirements of the layout are the following:
+  1. Each file must be named as `{table_name}.csv`, where `{table_name}` is the
+     table name that the file represents, **in lower-case** letters, with an
+     underscore (`_`) between words. For example, the file that represents the
+     _Components_ table must be named `components.csv`, whereas the file that
+     represents the _System Structure_ table must be named
+     `system_structure.csv`.
+  2. Each file must have a header with the column names in its first row. The
+     column names must be **exactly** the same as in the schema specification.
+
+After making sure that the above requirements are met, place all CSV files in
+one directory (eg. `csv_input`) and provide the directory path as the input
+command line argument in the `csv` option (use `-h` for help).
