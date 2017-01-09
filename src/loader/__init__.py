@@ -15,9 +15,9 @@ In order to define new loaders, the following steps are required:
        https://docs.python.org/3/library/argparse.html
     3. If (2) was required, then also create a handler function for the command
        line options of your loader. This function shall accept the parsed
-       arguments dictionary as its only parameter and return an instance of
-       your loader, based on the former. Assign your handler to your subparser
-       by invoking the set_defaults method on your subparser (see current code
+       arguments object as its only parameter and return an instance of your
+       loader, based on the former. Assign your handler to your sub-parser
+       by invoking the set_defaults method on your sub-parser (see current code
        as reference).
 """
 
