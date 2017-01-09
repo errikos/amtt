@@ -53,4 +53,4 @@ class Loader(object):
 
 
 # Contains all available loaders.
-__all__ = ['csv']
+__all__ = ['csv', 'xls']
