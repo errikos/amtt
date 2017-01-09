@@ -1,7 +1,7 @@
-## Availability Model Toolkit Compiler
+## Availability Model Translation Toolkit
 
 ### Input Formats
-The following input formats are currenty supported. You can create your own
+The following input formats are currently supported. You can create your own
 format by implementing the `Loader` interface. For more details, please see
 the documentation in the `loader` module's `__init__.py` file.
 
@@ -29,11 +29,23 @@ The requirements of the layout are the following:
      table name that the file represents, **in lower-case** letters, with an
      underscore (`_`) between words. For example, the file that represents the
      _Components_ table must be named `components.csv`, whereas the file that
-     represents the _System Structure_ table must be named
-     `system_structure.csv`.
+     represents the _Logic_ table must be named
+     `logic.csv`.
   2. Each file must have a header with the column names in its first row. The
      column names must be **exactly** the same as in the schema specification.
 
 After making sure that the above requirements are met, place all CSV files in
 one directory (eg. `csv_input`) and provide the directory path as the input
 command line argument in the `csv` option (use `-h` for help).
+
+#### XLS/XLSX Input Format
+###### Introduction
+The XLS format is also known as the Microsoft Office 2003 Excel format. It is
+a different and older format when compared to the Microsoft Office 2007 Excel
+format (XLSX).
+
+###### Model definition
+The model definition for the XLS/XLSX format is the same as the CSV format,
+with the only difference being that it is not necessary (and you should not)
+put the tables in different files. Instead, tables should be defined in the
+same document, but in separate sheets.

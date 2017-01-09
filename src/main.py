@@ -50,16 +50,16 @@ def parse_arguments():
     csv_parser.set_defaults(func=csv.handler)
 
     # sub-parser for XLS data source
-    xls_parser = subparsers.add_parser('xls', help='XLS input')
-    xls_parser.add_argument(
+    excel_parser = subparsers.add_parser('xls', help='XLS input')
+    excel_parser.add_argument(
         '-i',
         type=str,
         required=True,
-        metavar='IN_XLS',
-        dest='xls_in',
+        metavar='IN_EXCEL',
+        dest='excel_in',
         help='The XLS file containing the model definition')
     # set handler function - will be called whenever the xls option is selected
-    xls_parser.set_defaults(func=xls.handler)
+    excel_parser.set_defaults(func=excel.handler)
 
     # add subparsers for your own data sources here...
 
