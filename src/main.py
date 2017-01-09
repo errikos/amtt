@@ -19,6 +19,7 @@ def parse_arguments():
         '-t',
         type=str,
         required=True,
+        choices=['isograph'],
         metavar='TARGET',
         dest='target',
         help='The target software')
