@@ -49,6 +49,18 @@ def parse_arguments():
     # set handler function - will be called whenever the csv option is selected
     csv_parser.set_defaults(func=csv.handler)
 
+    # sub-parser for XLS data source
+    xls_parser = subparsers.add_parser('xls', help='XLS input')
+    xls_parser.add_argument(
+        '-i',
+        type=str,
+        required=True,
+        metavar='IN_XLS',
+        dest='xls_in',
+        help='The XLS file containing the model definition')
+    # set handler function - will be called whenever the xls option is selected
+    xls_parser.set_defaults(func=xls.handler)
+
     # add subparsers for your own data sources here...
 
     # parse arguments and handle input type
@@ -79,6 +91,7 @@ def main():
     target = args.target
     # create the Translator and start the process
     translator = Translator(loader, target)
+    translator.translate()
 
 
 if __name__ == "__main__":
