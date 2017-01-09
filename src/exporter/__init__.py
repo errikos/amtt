@@ -21,12 +21,25 @@ class Exporter(object):
     """
     The Exporter base class. Every exporter must be a subclass of this class.
 
-    A valid Loader must implement the following methods:
+    A valid Exporter must implement the following methods:
         pass
 
     If an Exporter fails to implement any of the above methods, then an
     AttributeError is raised at runtime, upon method invocation.
     """
+
+
+class ExporterFactory(object):
+
+    from .isograph import IsographExporter
+    isograph_exporter = IsographExporter()
+
+    @staticmethod
+    def get_exporter(target):
+        if target.lower() == 'isograph':
+            return ExporterFactory.isograph_exporter
+        else:
+            raise ExporterError('Unknown target: {}'.format(target))
 
 
 __all__ = ['isograph']
