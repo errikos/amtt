@@ -2,7 +2,6 @@
 """
 Main entry-point
 """
-import os
 import sys
 import argparse
 import logging
@@ -57,7 +56,7 @@ def parse_arguments():
     print(args)
     if 'func' not in args:
         parser.print_help()
-        sys.exit(os.EX_USAGE)
+        sys.exit(1)
     return args
 
 
@@ -84,6 +83,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-    sys.exit(os.EX_OK)
+    sys.exit(0)
 
 __all__ = []
