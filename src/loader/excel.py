@@ -4,7 +4,7 @@ xls (Microsoft Office 2003) Loader module
 
 import os
 import logging
-import pyexcel_xls as xls
+import pyexcel
 
 from . import Loader, LoaderError
 
@@ -28,16 +28,27 @@ class ExcelLoader(Loader):
         self._file_path = file_path
 
     def load(self, translator):
-        xls_doc = xls.get_data(self._file_path)
-        # Load system components
-        components = iter(xls_doc['Components'])
-        next(components)  # skip header
-        [translator.add_component(comp) for comp in components]
-        # Load system logic
-        logic = iter(xls_doc['Logic'])
-        next(logic)  # skip header
-        [translator.add_logic(logic) for logic in logic]
-        # Load system properties
-        properties = iter(xls_doc['Properties'])
-        next(properties)
-        [translator.add_property(prop) for prop in properties]
+        # Sheet names are listed here...
+        sheet_names = [
+            'Components',
+            'Logic',
+        ]
+        # ... and the flat handler methods here.
+        method_names = [
+            'add_component',
+            'add_logic',
+        ]
+        # Attention: sheet_names and method_names above are expected to have
+        #            a 1-1 correspondence
+        sheets = [
+            pyexcel.get_sheet(
+                file_name=self._file_path,
+                sheet_name=sheet_name,
+                name_columns_by_row=0) for sheet_name in sheet_names
+        ]
+        [[
+            getattr(translator.flats, method)(
+                **{key.lower(): val
+                   for key, val in zip(sheet.colnames, row)})
+            for row in sheet.rows()
+        ] for sheet, method in zip(sheets, method_names)]
