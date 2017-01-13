@@ -23,25 +23,28 @@ class CsvLoader(Loader):
         self.dir_in = dir_in
 
     def load(self, translator):
-        # Load system components
-        components_path = os.path.join(self.dir_in, 'components.csv')
-        with open(components_path, 'r') as f:
-            reader = csv.reader(f)
-            next(reader)  # skip header
-            for row in reader:
-                row[3] = int(row[3])  # convert quantity to int
-                translator.add_component(row)
-        # Load system logic
-        logic_path = os.path.join(self.dir_in, 'logic.csv')
-        with open(logic_path, 'r') as f:
-            reader = csv.reader(f)
-            next(reader)  # skip header
-            for row in reader:
-                translator.add_logic(row)
-        # Load system properties
-        properties_path = os.path.join(self.dir_in, 'properties.csv')
-        with open(properties_path, 'r') as f:
-            reader = csv.reader(f)
-            next(reader)  # skip header
-            for row in reader:
-                translator.add_property(row)
+        # csv file names are listed here...
+        file_names = [
+            'components.csv',
+            'logic.csv',
+        ]
+        # ... and the flat handler methods here.
+        method_names = [
+            'add_component',
+            'add_logic',
+        ]
+        # Attention: file_names and method_names above are expected to have
+        #            a 1-1 correspondence
+        for file_name, method_name in zip(file_names, method_names):
+            with open(os.path.join(self.dir_in, file_name)) as f:
+                reader = csv.DictReader(f)
+                # convert csv field (column) names to lowercase
+                reader.fieldnames = [
+                    field.lower() for field in reader.fieldnames
+                ]
+                # add the flat components to the translator structures
+                [
+                    getattr(translator.flats, method_name)(**row)
+                    for row in reader
+                ]
+
