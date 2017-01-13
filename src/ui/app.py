@@ -2,6 +2,8 @@ from tkinter import *
 from tkinter.ttk import *
 from tkinter import filedialog
 
+import version
+
 WINDOW_TEXT = 'Welcome to the Availability Model Translation Toolkit!\n\n' + \
               'First, select the input type and fill the input path ' + \
               'or click "Browse" to select a file or folder.\n' + \
@@ -144,7 +146,7 @@ class Application(Frame):
 class AboutDialog(object):
 
     DISCLAIMER = """
-Availability Model Translation Toolkit - v0.1 ALPHA
+Availability Model Translation Toolkit - {version}
 
 Copyright (c) 2017, CERN
 
@@ -159,7 +161,7 @@ INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
 LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
 OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
-    """
+    """.format(version=version.__version__)
 
     def __init__(self, parent):
         # Create dialog and set text content
