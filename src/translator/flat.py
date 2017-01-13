@@ -12,8 +12,8 @@ class FlatComponent(object):
     Class modelling a system Component, as read from the input (flat).
     """
 
-    def __init__(self, type_, name, parent, quantity):
-        self._type = type_
+    def __init__(self, type, name, parent, quantity):
+        self._type = type
         self._name = name
         self._parent = parent
         self._quantity = quantity
