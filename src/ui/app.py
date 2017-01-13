@@ -29,7 +29,7 @@ class Application(Frame):
         self._parent.minsize(width=720, height=480)
         self._parent.resizable(width=False, height=False)
         self._parent.title("Availability Model Translation Toolkit")
-        img = PhotoImage(file='resources/icon64x64.png')
+        img = PhotoImage(file='../resources/icon64x64.png')
         self._parent.tk.call('wm', 'iconphoto', self._parent._w, img)
 
     def _init_menu_bar(self):
