@@ -49,3 +49,17 @@ The model definition for the XLS/XLSX format is the same as the CSV format,
 with the only difference being that it is not necessary (and you should not)
 put the tables in different files. Instead, tables should be defined in the
 same document, but in separate sheets.
+
+### Output Formats
+The following output formats are currently supported.
+
+#### Isograph (Availability Workbench)
+Isograph Availability Workbench is an availability simulation tool developed by
+Isograph LTD. For more information, please visit the software
+[website](https://www.isograph.com/software/availability-workbench/).
+
+As of version 2.1, Isograph Availability Workbench supports importing from XML,
+Excel and CSV files, as well as importing from Microsoft Access, Microsoft SQL
+Server and Oracle Database. The files that amtt generates are in Excel format.
+More formats may be added in the future, mainly database ones. However, for the
+time being, no more than Excel file inputs are necessary.
