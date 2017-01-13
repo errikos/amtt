@@ -146,7 +146,7 @@ class Application(Frame):
 class AboutDialog(object):
 
     DISCLAIMER = """
-Availability Model Translation Toolkit - {version}
+Availability Model Translation Toolkit - Version {version}
 
 Copyright (c) 2017, CERN
 
