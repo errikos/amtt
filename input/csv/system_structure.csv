@@ -1,8 +1,0 @@
-Parent,Gate,Children,Quantity
-PSB-RF-System,AND,Ring,4
-Ring,VOTE(30),Cell,36
-Cell,AND,"DCSupply,AncillaryElectronics,RFCell,PLCInterlock(6),WaterCooling(6)",1
-RFCell,AND,"CoolingRing,FinemetCore,CeramicGap,VacuumChamber,RFPowerAmplifier",1
-RFPowerAmplifier,AND,"MosfetsDriver,MosfetPairs, MosfetPairs",1
-MosfetPairs,VOTE(7),MosfetPair,8
-MosfetPair,AND,Mosfet,2
