@@ -49,8 +49,8 @@ def parse_arguments():
     # set handler function - will be called whenever the csv option is selected
     csv_parser.set_defaults(func=csv.handler)
 
-    # sub-parser for XLS data source
-    excel_parser = subparsers.add_parser('xls', help='XLS input')
+    # sub-parser for Excel data source
+    excel_parser = subparsers.add_parser('excel', help='Microsoft Excel input')
     excel_parser.add_argument(
         '-i',
         type=str,
@@ -65,7 +65,6 @@ def parse_arguments():
 
     # parse arguments and handle input type
     args = parser.parse_args()
-    print(args)
     if 'func' not in args:
         parser.print_help()
         sys.exit(1)
@@ -95,7 +94,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # main()
+    from ui.app import run_ui
+    run_ui()
     sys.exit(0)
 
 __all__ = []

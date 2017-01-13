@@ -2,6 +2,8 @@ from tkinter import *
 from tkinter.ttk import *
 from tkinter import filedialog
 
+import webbrowser
+
 import version
 
 WINDOW_TEXT = 'Welcome to the Availability Model Translation Toolkit!\n\n' + \
@@ -150,17 +152,8 @@ Availability Model Translation Toolkit - Version {version}
 
 Copyright (c) 2017, CERN
 
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted, provided that the above
-copyright notice and this permission notice appear in all copies.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
-OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-PERFORMANCE OF THIS SOFTWARE.
+This software is distributed under the GNU GPLv3 license.
+For more details, please see the bundled LICENSE or visit:
     """.format(version=version.__version__)
 
     def __init__(self, parent):
@@ -170,6 +163,10 @@ PERFORMANCE OF THIS SOFTWARE.
         top.resizable(width=False, height=False)
         msg = Label(top, text=self.DISCLAIMER)
         msg.pack(padx=10)
+        gpl = Label(top, text=r"https://www.gnu.org/licenses/gpl-3.0.html",
+                    cursor="hand2", foreground="blue")
+        gpl.pack(pady=(0, 5))
+        gpl.bind("<Button-1>", lambda event: webbrowser.open_new(event.widget.cget("text")))
         # Create close button
         button = Button(top, text="Close", command=top.destroy)
         button.pack(pady=10)

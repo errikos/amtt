@@ -15,3 +15,6 @@ class IsographExporter(Exporter):
 
     def __init__(self):
         pass
+
+    def export(self, translator):
+        print('Exporting for Isograph...')
