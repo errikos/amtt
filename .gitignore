@@ -87,3 +87,6 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# input files (excel, csv, xml, etc)
+input/
