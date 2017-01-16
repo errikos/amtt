@@ -163,10 +163,14 @@ For more details, please see the bundled LICENSE or visit:
         top.resizable(width=False, height=False)
         msg = Label(top, text=self.DISCLAIMER)
         msg.pack(padx=10)
-        gpl = Label(top, text=r"https://www.gnu.org/licenses/gpl-3.0.html",
-                    cursor="hand2", foreground="blue")
+        gpl = Label(
+            top,
+            text=r"https://www.gnu.org/licenses/gpl-3.0.html",
+            cursor="hand2",
+            foreground="blue")
         gpl.pack(pady=(0, 5))
-        gpl.bind("<Button-1>", lambda event: webbrowser.open_new(event.widget.cget("text")))
+        gpl.bind("<Button-1>",
+                 lambda event: webbrowser.open_new(event.widget.cget("text")))
         # Create close button
         button = Button(top, text="Close", command=top.destroy)
         button.pack(pady=10)
