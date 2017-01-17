@@ -31,15 +31,13 @@ class Exporter(object):
 
 class ExporterFactory(object):
 
-    from .isograph import IsographExporter
-    isograph_exporter = IsographExporter()
-
     @staticmethod
-    def get_exporter(target):
-        if target.lower() == 'isograph':
-            return ExporterFactory.isograph_exporter
+    def get_exporter(caller):
+        if caller.target.lower() == 'isograph':
+            from .isograph import IsographExporter
+            return IsographExporter(caller)
         else:
-            raise ExporterError('Unknown target: {}'.format(target))
+            raise ExporterError('Unknown target: {}'.format(caller.target))
 
 
 __all__ = ['isograph']

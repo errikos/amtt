@@ -2,7 +2,6 @@
 The translator module.
 """
 
-from .elements import Model
 from .flat import FlatComponent, FlatLogic, FlatProperty
 
 
@@ -50,13 +49,17 @@ class Translator(object):
         self._target = target
         self._flat_container = _FlatContainer()
 
+    def parse_model(self):
+        # Here we construct the in-memory model from the flat objects
+        pass
+
     def translate(self):
         self._loader.load(self)
         # Get the exporter object
         from exporter import ExporterFactory
-        exporter = ExporterFactory.get_exporter(self._target)
+        exporter = ExporterFactory.get_exporter(self)
         # Export the model
-        exporter.export(self)
+        exporter.export()
 
     @property
     def flats(self):
@@ -64,3 +67,7 @@ class Translator(object):
         Property giving access to the flat objects container.
         """
         return self._flat_container
+
+    @property
+    def target(self):
+        return self._target
