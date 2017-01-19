@@ -6,7 +6,8 @@ import os
 import logging
 import pyexcel
 
-from . import Loader, LoaderError
+from . import Loader
+from errors import LoaderError
 
 _logger = logging.getLogger('loader.excel')
 

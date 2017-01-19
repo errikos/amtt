@@ -3,6 +3,7 @@ Contains the translator flat elements, as read from the input source.
 """
 
 import logging
+from exporter.isograph.rbd import Logic
 
 _logger = logging.getLogger('translator.flat')
 
@@ -43,7 +44,7 @@ class FlatLogic(object):
     def __init__(self, type, component, logic):
         self._type = type
         self._component = component
-        self._logic = logic
+        self._logic = Logic[logic]
 
     @property
     def type(self):
@@ -89,3 +90,36 @@ class FlatProperty(object):
     @property
     def unit(self):
         return self.unit
+
+
+class FlatContainer(object):
+    """
+    Container for objects as read from the input.
+    """
+
+    def __init__(self):
+        self._components = []
+        self._logic = []
+        self._properties = []
+
+    def add_component(self, type, name, parent, quantity, comment):
+        self._components.append(FlatComponent(type, name, parent, quantity))
+
+    def add_logic(self, type, component, logic, comment):
+        self._logic.append(FlatLogic(type, component, logic))
+
+    def add_property(self, component, propertyid, type, value, unit, comment):
+        self._properties.append(
+            FlatProperty(component, propertyid, type, value, unit))
+
+    @property
+    def component_list(self):
+        return self._components
+
+    @property
+    def logic_list(self):
+        return self._logic
+
+    @property
+    def property_list(self):
+        return self._properties

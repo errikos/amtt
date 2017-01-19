@@ -94,9 +94,9 @@ def main():
 
 
 if __name__ == "__main__":
-    # main()
-    from ui.app import run_ui
-    run_ui()
+    main()
+    # from ui.app import run_ui
+    # run_ui()
     sys.exit(0)
 
 __all__ = []

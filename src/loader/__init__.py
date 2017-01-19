@@ -21,15 +21,6 @@ In order to define new loaders, the following steps are required:
        as reference).
 """
 
-import translator
-
-
-class LoaderError(translator.TranslatorError):
-    """
-    Base class for Loader Exceptions.
-    Derive from this class when defining exceptions for your Loader classes.
-    """
-
 
 class Loader(object):
     """
