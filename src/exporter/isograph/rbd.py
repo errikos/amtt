@@ -6,7 +6,7 @@ for Isograph Reliability Workbench exportation.
 import logging
 import enum
 from collections import deque
-from pprint import pprint
+from collections import OrderedDict
 
 _logger = logging.getLogger('exporter.isograph.rbd')
 
@@ -18,34 +18,15 @@ class Block(object):
     Class modelling an RDB block.
     """
 
-    class _IterContents(object):
-        """Iterator object to iterate through the contents of a block"""
-
-        def __init__(self, contents):
-            self._contents = contents
-            self._length = len(contents)
-            self._idx = 0
-
-        def __iter__(self):
-            return self
-
-        def __next__(self):
-            if self._idx == self._length:
-                raise StopIteration()
-            else:
-                self._idx += 1
-                return self._contents[self._idx - 1]
-
     def __init__(self, name, parent):
         self._name = name
         self._parent = parent
-        self._contents_index = {}
-        self._contents_list = []
+        self._contents_index = OrderedDict()
         self._logic = None
         self._instance_id = None
 
     def __iter__(self):
-        return self._IterContents(self._contents_list)
+        return iter(self._contents_index.values())
 
     def __repr__(self):
         return '<Block@{}#n:{}#i:{}#p:{}#l:{}'.format(
@@ -60,7 +41,6 @@ class Block(object):
     def add_content(self, component_name, instances):
         if component_name not in self._contents_index:
             self._contents_index[component_name] = (component_name, instances)
-            self._contents_list.append((component_name, instances))
 
     @property
     def name(self):
@@ -72,7 +52,7 @@ class Block(object):
 
     @property
     def contents(self):
-        return self._contents_list
+        return self._contents_index.values()
 
     @property
     def logic(self):
