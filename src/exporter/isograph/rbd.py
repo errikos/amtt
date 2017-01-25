@@ -7,6 +7,7 @@ import logging
 import enum
 from collections import deque
 from collections import OrderedDict
+from .emitter.excel import RbdBlock, RbdNode, RbdConnection
 
 _logger = logging.getLogger('exporter.isograph.rbd')
 
@@ -76,8 +77,9 @@ class Rbd(object):
     Class modelling a RBD (Reliability Block Diagram) for Isograph.
     """
 
-    def __init__(self, flat_container):
+    def __init__(self, flat_container, emitter):
         self._flat_container = flat_container
+        self._emitter = emitter
         self._component_index = {}
         self._logic_index = {}
         self._block_index = {}
@@ -87,6 +89,7 @@ class Rbd(object):
         self._form_basic_rdb()
         self._consider_failure_nodes()
         self._serialize_blocks()
+        self._emitter.commit()
 
     def _form_basic_rdb(self):
         """
@@ -123,45 +126,82 @@ class Rbd(object):
         Serializes all system RBD blocks.
         """
         # The blocks remaining to be processed. Contents shall be tuples of
-        # type <Block, prefix>, where prefix is the page prefix string.
-        blocks_queue = deque()
+        # type <Block, prefix, parent_prefix>, where prefix is the page prefix
+        # of the block and parent_prefix is the page prefix of the parent.
+        blocks_stack = deque()
         root_block = self._block_index['ROOT']
+        self._serialize_root(root_block)
         # Gets the system root block. Quantity shall be 1.
         name, quantity = next(iter(root_block))
         # Add the system root block to the blocks queue.
-        blocks_queue.appendleft((self._block_index[name], deque(), deque()))
-        while blocks_queue:
-            current_block, path, old_path = blocks_queue.popleft()
-            self._serialize_block(current_block, path, old_path)
+        blocks_stack.appendleft((self._block_index[name], deque(), deque()))
+        while blocks_stack:
+            current_block, path, parent_path = blocks_stack.popleft()
+            self._serialize_block(current_block, path, parent_path)
             for block_name, quantity in current_block:
                 block = self._block_index[block_name]
                 [
-                    blocks_queue.appendleft((block, path + deque([i]), path))
+                    blocks_stack.appendleft((block, path + deque([i]), path))
                     for i in range(quantity, 0, -1)
-                ] if quantity > 1 else blocks_queue.appendleft(
+                ] if quantity > 1 else blocks_stack.appendleft(
                     (block, path, path))
+
+    def _serialize_root(self, root_block):
+        for block_name, _ in root_block:
+            # print("{},{},{},{},{},{}".format(block_name, '', 0, 0, 0, 0))
+            self._emitter.add_block(
+                RbdBlock(
+                    Id=block_name, Page=None, XPosition=0, YPosition=0))
 
     def _serialize_block(self, block, path, parent_path):
         """
         Serializes the given block to Isograph-specific tuples.
         """
 
+        # print(block.name, path, self._block_index[block.name].parent,
+        #       parent_path)
+
         def make_path(p):
-            return '.'.join([str(x) for x in p]) \
-                if len(p) > 1 else str(p[0]) if len(p) == 1 else '-'
+            return '.'.join([str(t) for t in p]) \
+                if len(p) > 1 else str(p[0]) if len(p) == 1 else ''
 
-        prefix = make_path(path) if path != parent_path else ''
+        prefix = make_path(path)
         parent_prefix = make_path(parent_path)
-        logic = block.logic
 
-        if logic is None:
+        print(block.name, prefix, self._block_index[block.name].parent,
+              parent_prefix)
+
+        if block.logic is None:
             return
 
-        print("{}: {}".format(block.name, logic.logic.name))
+        logic = block.logic.logic
+        xs, ys = 150, 60
+        dx, dy = 0, 0
 
-        # path_str = make_path(path)
-        # old_path_str = make_path(old_path)
-        # print(block)
-        # print('Path: ' + path_str)
-        # print('Parent path: ' + old_path_str)
-        # print()
+        if logic is Logic.AND:
+            dx, dy = 150, 0
+        elif logic in (Logic.OR, Logic.VOTE):
+            dx, dy = 0, 150
+        if logic is Logic.VOTE:
+            xs += 150
+
+        x, y = xs, ys
+
+        for i, (iblock, quantity) in enumerate(block):
+            block_obj = self._block_index[iblock]
+            [
+                self._emitter.add_block(
+                    RbdBlock(
+                        Id='{}.{}.{}'.format(iblock, prefix, a + 1)
+                        if prefix else '{}.{}'.format(iblock, a + 1),
+                        Page='{}.{}'.format(block_obj.parent, prefix)
+                        if prefix else block_obj.parent,
+                        XPosition=x + (i + a) * dx,
+                        YPosition=y + (i + a) * dy)) for a in range(quantity)
+            ] if quantity > 1 else self._emitter.add_block(
+                RbdBlock(
+                    Id='{}.{}'.format(iblock, prefix) if prefix else iblock,
+                    Page='{}.{}'.format(block_obj.parent, prefix)
+                    if prefix else block_obj.parent,
+                    XPosition=x + i * dx,
+                    YPosition=y + i * dy))
