@@ -79,11 +79,10 @@ class ExcelEmitter(Emitter):
         self._connections[connection.Id] = connection
 
     def commit(self):
-        data = OrderedDict({
-            sheet: [[getattr(row, k) for k in _schema[sheet]]
-                    for row in getattr(self, attr).values()]
-            for sheet, attr in zip(_schema.keys(), self.sheet_attributes)
-        })
+        data = OrderedDict(
+            [(sheet, [[getattr(row, k) for k in _schema[sheet]]
+                      for row in getattr(self, attr).values()])
+             for sheet, attr in zip(_schema.keys(), self.sheet_attributes)])
         xls.save_data(self._file_path, data)
 
     @property
