@@ -88,5 +88,8 @@ ENV/
 # Rope project settings
 .ropeproject
 
+# sphinx build directory
+doc/_build
+
 # input files (excel, csv, xml, etc)
 input/
