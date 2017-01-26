@@ -15,7 +15,7 @@ _schema = OrderedDict([
     ('RbdRepeatBlocks', ['Id', 'Page', 'XPosition', 'YPosition']),
     ('RbdNodes', ['Id', 'Page', 'Vote', 'XPosition', 'YPosition']),
     ('RbdConnections', [
-        'Id', 'Page', 'InputObjectIndex', 'InputObjectType',
+        'Id', 'Page', 'Type', 'InputObjectIndex', 'InputObjectType',
         'OutputObjectIndex', 'OutputObjectType'
     ]),
 ])
@@ -84,6 +84,14 @@ class ExcelEmitter(Emitter):
                       for row in getattr(self, attr).values()])
              for sheet, attr in zip(_schema.keys(), self.sheet_attributes)])
         xls.save_data(self._file_path, data)
+
+    def get_index_type_by_id(self, id):
+        if id in self._nodes:
+            return list(self._nodes).index(id) - 1, 'Rbd node'
+        elif id in self._blocks:
+            return list(self._blocks).index(id) - 1, 'Rbd block'
+        elif id in self._repeat_blocks:
+            return list(self._repeat_blocks).index(id) - 1, 'Rbd repeat block'
 
     @property
     def file_path(self):
