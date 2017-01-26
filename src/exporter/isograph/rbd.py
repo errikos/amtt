@@ -166,10 +166,6 @@ class Rbd(object):
                 if len(p) > 1 else str(p[0]) if len(p) == 1 else ''
 
         prefix = make_path(path)
-        parent_prefix = make_path(parent_path)
-
-        print(block.name, prefix, self._block_index[block.name].parent,
-              parent_prefix)
 
         if block.logic is None:
             return
@@ -187,21 +183,21 @@ class Rbd(object):
 
         x, y = xs, ys
 
-        for i, (iblock, quantity) in enumerate(block):
+        i = 0
+        for iblock, quantity in block:
             block_obj = self._block_index[iblock]
-            [
+
+            id_spec = '{}.{}'.format(iblock, prefix) if prefix else iblock
+            if quantity > 1:  # if more than one components
+                id_spec += '.{}'  # append an incremental number to the id
+
+            for q in range(quantity):
                 self._emitter.add_block(
                     RbdBlock(
-                        Id='{}.{}.{}'.format(iblock, prefix, a + 1)
-                        if prefix else '{}.{}'.format(iblock, a + 1),
+                        Id=id_spec.format(q + 1),
                         Page='{}.{}'.format(block_obj.parent, prefix)
                         if prefix else block_obj.parent,
-                        XPosition=x + (i + a) * dx,
-                        YPosition=y + (i + a) * dy)) for a in range(quantity)
-            ] if quantity > 1 else self._emitter.add_block(
-                RbdBlock(
-                    Id='{}.{}'.format(iblock, prefix) if prefix else iblock,
-                    Page='{}.{}'.format(block_obj.parent, prefix)
-                    if prefix else block_obj.parent,
-                    XPosition=x + i * dx,
-                    YPosition=y + i * dy))
+                        XPosition=x + i * dx,
+                        YPosition=y + i * dy))
+                i += 1
+
