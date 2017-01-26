@@ -7,6 +7,7 @@ import logging
 import enum
 from collections import deque
 from collections import OrderedDict
+from sliding_window import window
 from .emitter.excel import RbdBlock, RbdNode, RbdConnection
 
 _logger = logging.getLogger('exporter.isograph.rbd')
@@ -171,7 +172,7 @@ class Rbd(object):
             return
 
         logic = block.logic.logic
-        xs, ys = 150, 60
+        xs, ys = 250, 60
         dx, dy = 0, 0
 
         if logic is Logic.AND:
@@ -181,8 +182,9 @@ class Rbd(object):
         if logic is Logic.VOTE:
             xs += 150
 
-        x, y = xs, ys
+        # x, y = xs, ys
 
+        components = []
         i = 0
         for iblock, quantity in block:
             block_obj = self._block_index[iblock]
@@ -197,7 +199,66 @@ class Rbd(object):
                         Id=id_spec.format(q + 1),
                         Page='{}.{}'.format(block_obj.parent, prefix)
                         if prefix else block_obj.parent,
-                        XPosition=x + i * dx,
-                        YPosition=y + i * dy))
+                        XPosition=xs + i * dx,
+                        YPosition=ys + i * dy))
+                components.append(id_spec.format(q + 1))
                 i += 1
 
+        # Create component connections
+        if logic in (Logic.OR, Logic.VOTE):
+            middle = len(components) / 2
+            for xpos, pos in zip((xs - 150, xs + 200), ('In', 'Out')):
+                self._emitter.add_node(
+                    RbdNode(
+                        Id='{}.{}.{}'.format(block.name, prefix, pos)
+                        if prefix else '{}.{}'.format(block.name, pos),
+                        Page='{}.{}'.format(block.name, prefix)
+                        if prefix else block.name,
+                        Vote=1,
+                        XPosition=xpos,
+                        YPosition=ys + middle * 150 - 50))
+
+            input_node_index, _ = self._emitter.get_index_type_by_id(
+                '{}.{}.{}'.format(block.name, prefix, 'In'))
+            output_node_index, _ = self._emitter.get_index_type_by_id(
+                '{}.{}.{}'.format(block.name, prefix, 'Out'))
+            for i, component in enumerate(components):
+                component_index, _ = self._emitter.get_index_type_by_id(
+                    component)
+                io_connectors = [(input_node_index, 'Rbd node',
+                                  component_index, 'Rbd block'),
+                                 (component_index, 'Rbd block',
+                                  output_node_index, 'Rbd node')]
+                for j, (input_idx, input_type, output_idx,
+                        output_type) in enumerate(io_connectors):
+                    self._emitter.add_connection(
+                        RbdConnection(
+                            Id='{}.{}.Conn.{}'.format(
+                                block.name, prefix, 2 * i + (j + 1))
+                            if prefix else '{}.Conn.{}'.format(
+                                block.name, 2 * i + (j + 1)),
+                            Page='{}.{}'.format(block.name, prefix)
+                            if prefix else block.name,
+                            Type='Diagonal',
+                            InputObjectIndex=input_idx,
+                            InputObjectType=input_type,
+                            OutputObjectIndex=output_idx,
+                            OutputObjectType=output_type))
+
+        elif logic is Logic.AND:
+            for i, (comp1, comp2) in enumerate(window(components, 2)):
+                comp1_idx, t1 = self._emitter.get_index_type_by_id(comp1)
+                comp2_idx, t2 = self._emitter.get_index_type_by_id(comp2)
+                self._emitter.add_connection(
+                    RbdConnection(
+                        Id='{}.{}.Conn.{}'.format(
+                            block.name, prefix, i + 1)
+                        if prefix else '{}.Conn.{}'.format(
+                            block.name, i + 1),
+                        Page='{}.{}'.format(block.name, prefix)
+                        if prefix else block.name,
+                        Type='Diagonal',
+                        InputObjectIndex=comp1_idx,
+                        InputObjectType=t1,
+                        OutputObjectIndex=comp2_idx,
+                        OutputObjectType=t2))
