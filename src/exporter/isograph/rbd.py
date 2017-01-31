@@ -135,32 +135,27 @@ class Rbd(object):
         # Gets the system root block. Quantity shall be 1.
         name, quantity = next(iter(root_block))
         # Add the system root block to the blocks queue.
-        blocks_stack.appendleft((self._block_index[name], deque(), deque()))
+        blocks_stack.appendleft((self._block_index[name], deque()))
         while blocks_stack:
-            current_block, path, parent_path = blocks_stack.popleft()
-            self._serialize_block(current_block, path, parent_path)
+            current_block, path = blocks_stack.popleft()
+            self._serialize_block(current_block, path)
             for block_name, quantity in current_block:
                 block = self._block_index[block_name]
                 [
-                    blocks_stack.appendleft((block, path + deque([i]), path))
+                    blocks_stack.appendleft((block, path + deque([i])))
                     for i in range(quantity, 0, -1)
-                ] if quantity > 1 else blocks_stack.appendleft(
-                    (block, path, path))
+                ] if quantity > 1 else blocks_stack.appendleft((block, path))
 
     def _serialize_root(self, root_block):
         for block_name, _ in root_block:
             # print("{},{},{},{},{},{}".format(block_name, '', 0, 0, 0, 0))
             self._emitter.add_block(
-                RbdBlock(
-                    Id=block_name, Page=None, XPosition=0, YPosition=0))
+                RbdBlock(Id=block_name, Page=None, XPosition=0, YPosition=0))
 
-    def _serialize_block(self, block, path, parent_path):
+    def _serialize_block(self, block, path):
         """
         Serializes the given block to Isograph-specific tuples.
         """
-
-        # print(block.name, path, self._block_index[block.name].parent,
-        #       parent_path)
 
         def make_path(p):
             return '.'.join([str(t) for t in p]) \
@@ -233,10 +228,9 @@ class Rbd(object):
                         output_type) in enumerate(io_connectors):
                     self._emitter.add_connection(
                         RbdConnection(
-                            Id='{}.{}.Conn.{}'.format(
-                                block.name, prefix, 2 * i + (j + 1))
-                            if prefix else '{}.Conn.{}'.format(
-                                block.name, 2 * i + (j + 1)),
+                            Id='{}.{}.Conn.{}'.format(block.name, prefix, 2 * i
+                                                      + (j + 1)) if prefix else
+                            '{}.Conn.{}'.format(block.name, 2 * i + (j + 1)),
                             Page='{}.{}'.format(block.name, prefix)
                             if prefix else block.name,
                             Type='Diagonal',
@@ -251,10 +245,8 @@ class Rbd(object):
                 comp2_idx, t2 = self._emitter.get_index_type_by_id(comp2)
                 self._emitter.add_connection(
                     RbdConnection(
-                        Id='{}.{}.Conn.{}'.format(
-                            block.name, prefix, i + 1)
-                        if prefix else '{}.Conn.{}'.format(
-                            block.name, i + 1),
+                        Id='{}.{}.Conn.{}'.format(block.name, prefix, i + 1)
+                        if prefix else '{}.Conn.{}'.format(block.name, i + 1),
                         Page='{}.{}'.format(block.name, prefix)
                         if prefix else block.name,
                         Type='Diagonal',
