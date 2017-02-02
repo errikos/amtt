@@ -148,7 +148,6 @@ class Rbd(object):
 
     def _serialize_root(self, root_block):
         for block_name, _ in root_block:
-            # print("{},{},{},{},{},{}".format(block_name, '', 0, 0, 0, 0))
             self._emitter.add_block(
                 RbdBlock(Id=block_name, Page=None, XPosition=0, YPosition=0))
 
@@ -156,7 +155,6 @@ class Rbd(object):
         """
         Serializes the given block to Isograph-specific tuples.
         """
-        print("Serialising block: " + block.name)
 
         def make_path(p):
             return '.'.join([str(t) for t in p]) \
@@ -177,8 +175,6 @@ class Rbd(object):
             dx, dy = 0, 150
         if logic is Logic.VOTE:
             xs += 150
-
-        # x, y = xs, ys
 
         components = []
         i = 0
