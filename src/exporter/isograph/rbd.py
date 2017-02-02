@@ -156,6 +156,7 @@ class Rbd(object):
         """
         Serializes the given block to Isograph-specific tuples.
         """
+        print("Serialising block: " + block.name)
 
         def make_path(p):
             return '.'.join([str(t) for t in p]) \
@@ -200,7 +201,7 @@ class Rbd(object):
                 i += 1
 
         # Create component connections
-        if logic in (Logic.OR, Logic.VOTE):
+        if logic in (Logic.OR, Logic.VOTE) and len(components) > 1:
             middle = len(components) / 2
             for xpos, pos in zip((xs - 150, xs + 200), ('In', 'Out')):
                 self._emitter.add_node(
@@ -213,10 +214,13 @@ class Rbd(object):
                         XPosition=xpos,
                         YPosition=ys + middle * 150 - 50))
 
+            id_prefix = '{}.{}'.format(block.name,
+                                       prefix) if prefix else block.name
+            id_prefix += '.{}'
             input_node_index, _ = self._emitter.get_index_type_by_id(
-                '{}.{}.{}'.format(block.name, prefix, 'In'))
+                id_prefix.format('In'))
             output_node_index, _ = self._emitter.get_index_type_by_id(
-                '{}.{}.{}'.format(block.name, prefix, 'Out'))
+                id_prefix.format('Out'))
             for i, component in enumerate(components):
                 component_index, _ = self._emitter.get_index_type_by_id(
                     component)
@@ -239,7 +243,7 @@ class Rbd(object):
                             OutputObjectIndex=output_idx,
                             OutputObjectType=output_type))
 
-        elif logic is Logic.AND:
+        elif logic is Logic.AND and len(components) > 1:
             for i, (comp1, comp2) in enumerate(window(components, 2)):
                 comp1_idx, t1 = self._emitter.get_index_type_by_id(comp1)
                 comp2_idx, t2 = self._emitter.get_index_type_by_id(comp2)
