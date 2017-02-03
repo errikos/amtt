@@ -157,8 +157,8 @@ class Rbd(object):
         """
 
         def make_path(p):
-            return '.'.join([str(t) for t in p]) \
-                if len(p) > 1 else str(p[0]) if len(p) == 1 else ''
+            return '.' + '.'.join([str(t) for t in p]) \
+                if len(p) > 1 else '.' + str(p[0]) if len(p) == 1 else ''
 
         prefix = make_path(path)
 
@@ -181,7 +181,7 @@ class Rbd(object):
         for iblock, quantity in block:
             block_obj = self._block_index[iblock]
 
-            id_spec = '{}.{}'.format(iblock, prefix) if prefix else iblock
+            id_spec = '{}{}'.format(iblock, prefix)
             if quantity > 1:  # if more than one components
                 id_spec += '.{}'  # append an incremental number to the id
 
@@ -189,8 +189,7 @@ class Rbd(object):
                 self._emitter.add_block(
                     RbdBlock(
                         Id=id_spec.format(q + 1),
-                        Page='{}.{}'.format(block_obj.parent, prefix)
-                        if prefix else block_obj.parent,
+                        Page='{}{}'.format(block_obj.parent, prefix),
                         XPosition=xs + i * dx,
                         YPosition=ys + i * dy))
                 components.append(id_spec.format(q + 1))
@@ -202,17 +201,13 @@ class Rbd(object):
             for xpos, pos in zip((xs - 150, xs + 200), ('In', 'Out')):
                 self._emitter.add_node(
                     RbdNode(
-                        Id='{}.{}.{}'.format(block.name, prefix, pos)
-                        if prefix else '{}.{}'.format(block.name, pos),
-                        Page='{}.{}'.format(block.name, prefix)
-                        if prefix else block.name,
+                        Id='{}{}.{}'.format(block.name, prefix, pos),
+                        Page='{}{}'.format(block.name, prefix),
                         Vote=1,
                         XPosition=xpos,
                         YPosition=ys + middle * 150 - 50))
 
-            id_prefix = '{}.{}'.format(block.name,
-                                       prefix) if prefix else block.name
-            id_prefix += '.{}'
+            id_prefix = '{}{}'.format(block.name, prefix) + '.{}'
             input_node_index, _ = self._emitter.get_index_type_by_id(
                 id_prefix.format('In'))
             output_node_index, _ = self._emitter.get_index_type_by_id(
@@ -228,11 +223,9 @@ class Rbd(object):
                         output_type) in enumerate(io_connectors):
                     self._emitter.add_connection(
                         RbdConnection(
-                            Id='{}.{}.Conn.{}'.format(block.name, prefix, 2 * i
-                                                      + (j + 1)) if prefix else
-                            '{}.Conn.{}'.format(block.name, 2 * i + (j + 1)),
-                            Page='{}.{}'.format(block.name, prefix)
-                            if prefix else block.name,
+                            Id='{}{}.Conn.{}'.format(block.name, prefix, 2 * i
+                                                     + (j + 1)),
+                            Page='{}{}'.format(block.name, prefix),
                             Type='Diagonal',
                             InputObjectIndex=input_idx,
                             InputObjectType=input_type,
@@ -245,10 +238,8 @@ class Rbd(object):
                 comp2_idx, t2 = self._emitter.get_index_type_by_id(comp2)
                 self._emitter.add_connection(
                     RbdConnection(
-                        Id='{}.{}.Conn.{}'.format(block.name, prefix, i + 1)
-                        if prefix else '{}.Conn.{}'.format(block.name, i + 1),
-                        Page='{}.{}'.format(block.name, prefix)
-                        if prefix else block.name,
+                        Id='{}{}.Conn.{}'.format(block.name, prefix, i + 1),
+                        Page='{}{}'.format(block.name, prefix),
                         Type='Diagonal',
                         InputObjectIndex=comp1_idx,
                         InputObjectType=t1,
