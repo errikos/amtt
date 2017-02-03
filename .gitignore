@@ -93,3 +93,6 @@ doc/_build
 
 # input files (excel, csv, xml, etc)
 input/
+
+# PyCharm project files
+**/.idea
