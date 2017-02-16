@@ -27,13 +27,11 @@ class CsvLoader(Loader):
         file_names = [
             'components.csv',
             'logic.csv',
-            'properties.csv',
         ]
         # ... and the flat handler methods here.
         method_names = [
             'add_component',
             'add_logic',
-            'add_property',
         ]
         # Attention: file_names and method_names above are expected to have
         #            a 1-1 correspondence
