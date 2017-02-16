@@ -42,7 +42,8 @@ class CsvLoader(Loader):
                 reader = csv.DictReader(f)
                 # convert csv field (column) names to lowercase
                 reader.fieldnames = [
-                    field.lower() for field in reader.fieldnames
+                    field.lower().replace(' ', '_')
+                    for field in reader.fieldnames
                 ]
                 # add the flat components to the translator structures
                 [

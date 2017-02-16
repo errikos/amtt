@@ -50,8 +50,8 @@ class ExcelLoader(Loader):
                 name_columns_by_row=0) for sheet_name in sheet_names
         ]
         [[
-            getattr(translator.flats, method)(
-                **{key.lower(): val
-                   for key, val in zip(sheet.colnames, row)})
-            for row in sheet.rows()
+            getattr(translator.flats, method)(**{
+                key.lower().replace(' ', '_'): val
+                for key, val in zip(sheet.colnames, row)
+            }) for row in sheet.rows()
         ] for sheet, method in zip(sheets, method_names)]
