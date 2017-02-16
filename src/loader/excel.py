@@ -33,13 +33,11 @@ class ExcelLoader(Loader):
         sheet_names = [
             'Components',
             'Logic',
-            'Properties',
         ]
         # ... and the flat handler methods here.
         method_names = [
             'add_component',
             'add_logic',
-            'add_property',
         ]
         # Attention: sheet_names and method_names above are expected to have
         #            a 1-1 correspondence
@@ -49,9 +47,9 @@ class ExcelLoader(Loader):
                 sheet_name=sheet_name,
                 name_columns_by_row=0) for sheet_name in sheet_names
         ]
-        [[
+        [[  # Call the appropriate method for each sheet and store rows.
             getattr(translator.flats, method)(**{
-                key.lower().replace(' ', '_'): val
+                key.lower().replace(' ', '_').strip(): Loader.strip(val)
                 for key, val in zip(sheet.colnames, row)
             }) for row in sheet.rows()
         ] for sheet, method in zip(sheets, method_names)]
