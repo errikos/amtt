@@ -23,11 +23,17 @@ def parse_arguments():
         dest='target',
         help='The target software')
     parser.add_argument(
+        '-o',
+        type=str,
+        metavar='OUTPUT_BASEDIR',
+        dest='output_basedir',
+        help='The output base directory')
+    parser.add_argument(
         '-v',
         action='count',
         dest='verbosity',
         default=0,
-        help='Enable verbosity')
+        help='Increase verbosity')
     subparsers = parser.add_subparsers(title='Supported input types')
 
     # sub-parser for CSV data source
@@ -36,16 +42,9 @@ def parse_arguments():
         '-i',
         type=str,
         required=True,
-        metavar='IN_DIR',
+        metavar='DIR_IN',
         dest='dir_in',
         help='The directory to read CSV files from')
-    csv_parser.add_argument(
-        '-o',
-        type=str,
-        default='output',
-        metavar='OUT_DIR',
-        dest='dir_out',
-        help='The directory to write the output files to')
     # set handler function - will be called whenever the csv option is selected
     csv_parser.set_defaults(func=csv.handler)
 
@@ -55,7 +54,7 @@ def parse_arguments():
         '-i',
         type=str,
         required=True,
-        metavar='IN_EXCEL',
+        metavar='EXCEL_IN',
         dest='excel_in',
         help='The XLS file containing the model definition')
     # set handler function - will be called whenever the xls option is selected
@@ -87,9 +86,8 @@ def main():
     # call the appropriate handler for the input type
     # and get the appropriate loader
     loader = args.func(args)
-    target = args.target
     # create the Translator and start the process
-    translator = Translator(loader, target)
+    translator = Translator(loader, args.target, args.output_basedir)
     translator.translate()
 
 

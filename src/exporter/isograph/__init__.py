@@ -1,6 +1,7 @@
 """
 Exporter module for Isograph Availability Workbench.
 """
+import os
 
 from exporter import Exporter
 from .rbd import Rbd
@@ -17,11 +18,13 @@ class IsographExporter(Exporter):
     Exporter to export the model to Isograph.
     """
 
-    def __init__(self, translator, output_path=None):
-        if output_path is None:
-            output_path = 'model_{}.xls'.format(
-                dt.now().strftime('%Y%m%d_%H%M%S_%f'))
-            print('Output path is: ' + output_path)
+    def __init__(self, translator):
+        nobasedir = translator.output_basedir is None
+        basedir = translator.output_basedir if not nobasedir else ''
+        output_path = 'model_{}.xls'.format(
+            dt.now().strftime('%Y%m%d_%H%M%S_%f'))
+        output_path = os.path.join(basedir, output_path)
+        _logger.info('Output path is: ' + output_path)
         self._translator = translator
         self._emitter = ExcelEmitter(output_path)
 

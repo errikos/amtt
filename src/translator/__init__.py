@@ -12,7 +12,7 @@ class Translator(object):
     The translator class.
     """
 
-    def __init__(self, loader, target):
+    def __init__(self, loader, target, output_basedir):
         """
         The Translator constructor.
 
@@ -22,6 +22,7 @@ class Translator(object):
         """
         self._loader = loader
         self._target = target
+        self._output_basedir = output_basedir
         self._flat_container = FlatContainer()
 
     def parse_model(self):
@@ -45,6 +46,10 @@ class Translator(object):
     @property
     def target(self):
         return self._target
+
+    @property
+    def output_basedir(self):
+        return self._output_basedir
 
 
 class ExporterFactory(object):
