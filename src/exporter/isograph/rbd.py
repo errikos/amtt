@@ -4,7 +4,7 @@ for Isograph Reliability Workbench exportation.
 """
 
 import logging
-import enum
+import re
 from collections import deque
 from collections import OrderedDict
 from sliding_window import window
@@ -12,49 +12,56 @@ from .emitter.excel import RbdBlock, RbdNode, RbdConnection
 
 _logger = logging.getLogger('exporter.isograph.rbd')
 
-Logic = enum.Enum('Logic', ['AND', 'OR', 'VOTE'])
 
-
-class Block(object):
+class Component(object):
     """
-    Class modelling an RDB block.
+    Class modelling an RBD component instance.
     """
 
-    def __init__(self, name, parent):
+    def __init__(self, type, name, code, instances):
+        self._type = type
         self._name = name
-        self._parent = parent
-        self._contents_index = OrderedDict()
+        self._code = code
+        self._instances = instances
+        self._parent = None
         self._logic = None
-        self._instance_id = None
-
-    def __iter__(self):
-        return iter(self._contents_index.values())
-
-    def __repr__(self):
-        return '<Block@{}#n:{}#i:{}#p:{}#l:{}'.format(
-            id(self), self.name, self.instance_id, self.parent, self.logic)
+        self._children = []
 
     def __str__(self):
-        return ('Block:\n\tName: {}\n\tInstance: {}\n\t' +
-                'Parent: {} \n\tLogic: {}\n').format(
-                    self.name, self.instance_id, self.parent, self.logic.logic
-                    if self.logic is not None else None)
+        return 'rbd.Component: t:{},n:{},c:{},i:{},p:{},L:{}'.format(
+            self.type, self.name, self.code, self.instances, self.parent.name
+            if self.parent is not None else None, self.logic.name
+            if self.logic is not None else None)
 
-    def add_content(self, component_name, instances):
-        if component_name not in self._contents_index:
-            self._contents_index[component_name] = (component_name, instances)
+    def __iter__(self):
+        return iter(self._children)
+
+    def add_child(self, component):
+        self._children.append(component)
+
+    @property
+    def type(self):
+        return self._type
 
     @property
     def name(self):
         return self._name
 
     @property
+    def code(self):
+        return self._code
+
+    @property
+    def instances(self):
+        return self._instances
+
+    @property
     def parent(self):
         return self._parent
 
-    @property
-    def contents(self):
-        return self._contents_index.values()
+    @parent.setter
+    def parent(self, parent):
+        self._parent = parent
 
     @property
     def logic(self):
@@ -64,13 +71,39 @@ class Block(object):
     def logic(self, logic):
         self._logic = logic
 
-    @property
-    def instance_id(self):
-        return self._instance_id
 
-    @instance_id.setter
-    def instance_id(self, instance_id):
-        self._instance_id = instance_id
+class Logic(object):
+    """
+    Class modelling an RBD component layout:
+        - AND: series
+        - OR: parallel
+        - ACTIVE(x,y): parallel with x out-of y voting
+    """
+
+    def __init__(self, raw_string):
+        # Parse raw string
+        tokens = re.split(r'[(,)]', raw_string)
+        self._name = tokens[0]
+        self._voting = tokens[1] if len(tokens) > 1 else None
+        self._total = tokens[2] if len(tokens) > 2 else None
+
+    def __str__(self):
+        s = 'Logic: ' + self._name
+        if self._name == 'ACTIVE':
+            s += ', {} out of {}'.format(self._voting, self._total)
+        return s
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def voting(self):
+        return self._voting
+
+    @property
+    def total(self):
+        return self._total
 
 
 class Rbd(object):
@@ -78,170 +111,42 @@ class Rbd(object):
     Class modelling a RBD (Reliability Block Diagram) for Isograph.
     """
 
-    def __init__(self, flat_container, emitter):
+    def __init__(self, flat_container):
         self._flat_container = flat_container
-        self._emitter = emitter
-        self._component_index = {}
-        self._logic_index = {}
-        self._block_index = {}
+        self._component_index = OrderedDict()
         self._construct()
 
     def _construct(self):
-        self._form_basic_rdb()
-        self._consider_failure_nodes()
-        self._serialize_blocks()
-        self._emitter.commit()
+        self._form_basic_rbd()
 
-    def _form_basic_rdb(self):
-        """
-        This is the first method called when constructing the RDB.
-        """
-        # Add logic info to the logic index
-        for logic in self._flat_container.logic_list:
-            self._logic_index[logic.component] = logic
-
-        # Add system components to the component index (by name)
-        for component in self._flat_container.component_list:
-            self._component_index[component.name] = component
-            new_block = Block(component.name, component.parent)
-            # Assign logic to block
-            new_block.logic = self._logic_index[component.name] \
-                if component.name in self._logic_index else None
-            self._block_index[component.name] = new_block
-
-        # Create ROOT block
-        self._block_index['ROOT'] = Block('ROOT', None)
-
-        # Fill the blocks
+    def _form_basic_rbd(self):
+        # Create ROOT Component and add to index
+        root = Component('COMPOUND', 'ROOT', None, 1)
+        self._component_index[root.name] = root
+        # Build component index
+        for f_component in self._flat_container.component_list:
+            self._component_index[f_component.name] = Component(
+                f_component.element, f_component.name,
+                f_component.component_code, f_component.instances)
+        # Assign parents
+        for f_component in self._flat_container.component_list:
+            if f_component.parent not in self._component_index:
+                _logger.warning('Component "{}" has an invalid parent'.format(
+                    f_component.name))
+            else:
+                self._component_index[
+                    f_component.name].parent = self._component_index[
+                        f_component.parent]
+        # Assign logic
+        for f_logic in self._flat_container.logic_list:
+            self._component_index[f_logic.gate].logic = Logic(f_logic.logic)
+        # Assign children
         for name, component in self._component_index.items():
             parent = component.parent
-            self._block_index[parent].add_content(name, component.quantity)
+            if parent is not None and component.type in ('compound', 'root'):
+                self._component_index[parent.name].add_child(component)
 
-    def _consider_failure_nodes(self):
-        """
-        TODO
-        """
-
-    def _serialize_blocks(self):
-        """
-        Serializes all system RBD blocks.
-        """
-        # The blocks remaining to be processed. Contents shall be tuples of
-        # type <Block, prefix, parent_prefix>, where prefix is the page prefix
-        # of the block and parent_prefix is the page prefix of the parent.
-        blocks_stack = deque()
-        root_block = self._block_index['ROOT']
-        self._serialize_root(root_block)
-        # Gets the system root block. Quantity shall be 1.
-        name, quantity = next(iter(root_block))
-        # Add the system root block to the blocks queue.
-        blocks_stack.appendleft((self._block_index[name], deque()))
-        while blocks_stack:
-            current_block, path = blocks_stack.popleft()
-            self._serialize_block(current_block, path)
-            for block_name, quantity in current_block:
-                block = self._block_index[block_name]
-                [
-                    blocks_stack.appendleft((block, path + deque([i])))
-                    for i in range(quantity, 0, -1)
-                ] if quantity > 1 else blocks_stack.appendleft((block, path))
-
-    def _serialize_root(self, root_block):
-        for block_name, _ in root_block:
-            self._emitter.add_block(
-                RbdBlock(Id=block_name, Page=None, XPosition=0, YPosition=0))
-
-    def _serialize_block(self, block, path):
-        """
-        Serializes the given block to Isograph-specific tuples.
-        """
-
-        def make_path(p):
-            return '.' + '.'.join([str(t) for t in p]) \
-                if len(p) > 1 else '.' + str(p[0]) if len(p) == 1 else ''
-
-        prefix = make_path(path)
-
-        if block.logic is None:
-            return
-
-        logic = block.logic.logic
-        xs, ys = 250, 60
-        dx, dy = 0, 0
-
-        if logic is Logic.AND:
-            dx, dy = 150, 0
-        elif logic in (Logic.OR, Logic.VOTE):
-            dx, dy = 0, 150
-        if logic is Logic.VOTE:
-            xs += 150
-
-        components = []
-        i = 0
-        for iblock, quantity in block:
-            block_obj = self._block_index[iblock]
-
-            id_spec = '{}{}'.format(iblock, prefix)
-            if quantity > 1:  # if more than one components
-                id_spec += '.{}'  # append an incremental number to the id
-
-            for q in range(quantity):
-                self._emitter.add_block(
-                    RbdBlock(
-                        Id=id_spec.format(q + 1),
-                        Page='{}{}'.format(block_obj.parent, prefix),
-                        XPosition=xs + i * dx,
-                        YPosition=ys + i * dy))
-                components.append(id_spec.format(q + 1))
-                i += 1
-
-        # Create component connections
-        if logic in (Logic.OR, Logic.VOTE) and len(components) > 1:
-            middle = len(components) / 2
-            for xpos, pos in zip((xs - 150, xs + 200), ('In', 'Out')):
-                self._emitter.add_node(
-                    RbdNode(
-                        Id='{}{}.{}'.format(block.name, prefix, pos),
-                        Page='{}{}'.format(block.name, prefix),
-                        Vote=1,
-                        XPosition=xpos,
-                        YPosition=ys + middle * 150 - 50))
-
-            id_prefix = '{}{}'.format(block.name, prefix) + '.{}'
-            input_node_index, _ = self._emitter.get_index_type_by_id(
-                id_prefix.format('In'))
-            output_node_index, _ = self._emitter.get_index_type_by_id(
-                id_prefix.format('Out'))
-            for i, component in enumerate(components):
-                component_index, _ = self._emitter.get_index_type_by_id(
-                    component)
-                io_connectors = [(input_node_index, 'Rbd node',
-                                  component_index, 'Rbd block'),
-                                 (component_index, 'Rbd block',
-                                  output_node_index, 'Rbd node')]
-                for j, (input_idx, input_type, output_idx,
-                        output_type) in enumerate(io_connectors):
-                    self._emitter.add_connection(
-                        RbdConnection(
-                            Id='{}{}.Conn.{}'.format(block.name, prefix, 2 * i
-                                                     + (j + 1)),
-                            Page='{}{}'.format(block.name, prefix),
-                            Type='Diagonal',
-                            InputObjectIndex=input_idx,
-                            InputObjectType=input_type,
-                            OutputObjectIndex=output_idx,
-                            OutputObjectType=output_type))
-
-        elif logic is Logic.AND and len(components) > 1:
-            for i, (comp1, comp2) in enumerate(window(components, 2)):
-                comp1_idx, t1 = self._emitter.get_index_type_by_id(comp1)
-                comp2_idx, t2 = self._emitter.get_index_type_by_id(comp2)
-                self._emitter.add_connection(
-                    RbdConnection(
-                        Id='{}{}.Conn.{}'.format(block.name, prefix, i + 1),
-                        Page='{}{}'.format(block.name, prefix),
-                        Type='Diagonal',
-                        InputObjectIndex=comp1_idx,
-                        InputObjectType=t1,
-                        OutputObjectIndex=comp2_idx,
-                        OutputObjectType=t2))
+        for name, component in self._component_index.items():
+            print(name)
+            for child in component:
+                print('  ' + child.name)

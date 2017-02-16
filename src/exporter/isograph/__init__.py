@@ -37,5 +37,6 @@ class IsographExporter(Exporter):
         """
         Create the RBD from the input (flat) objects.
         """
-        block_diagram = Rbd(self._translator.flats, self._emitter)
+        block_diagram = Rbd(self._translator.flats)
+        # block_diagram = Rbd(self._translator.flats, self._emitter)
         return block_diagram
