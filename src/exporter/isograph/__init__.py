@@ -30,13 +30,6 @@ class IsographExporter(Exporter):
 
     def export(self):
         # create block diagram from input
-        block_diagram = self._create_reliability_block_diagram()
-        # dump block diagram to output
-
-    def _create_reliability_block_diagram(self):
-        """
-        Create the RBD from the input (flat) objects.
-        """
         block_diagram = Rbd(self._translator.flats)
-        # block_diagram = Rbd(self._translator.flats, self._emitter)
-        return block_diagram
+        # dump block diagram to output
+        block_diagram.serialize(self._emitter)

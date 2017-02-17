@@ -15,16 +15,16 @@ _logger = logging.getLogger('exporter.isograph.rbd')
 
 class Component(object):
     """
-    Class modelling an RBD component instance.
+    Class modelling an RBD component.
     """
 
-    def __init__(self, type, name, code, instances):
+    def __init__(self, type, name, code, instances, logic=None):
         self._type = type
         self._name = name
         self._code = code
         self._instances = instances
+        self._logic = logic
         self._parent = None
-        self._logic = None
         self._children = []
 
     def __str__(self):
@@ -75,9 +75,10 @@ class Component(object):
 class Logic(object):
     """
     Class modelling an RBD component layout:
-        - AND: series
-        - OR: parallel
-        - ACTIVE(x,y): parallel with x out-of y voting
+        - ROOT: indicates the layout of the ROOT component
+        - AND: connection in series
+        - OR: connection in parallel
+        - ACTIVE(x,y): connection in parallel with x out-of y voting
     """
 
     def __init__(self, raw_string):
@@ -115,13 +116,16 @@ class Rbd(object):
         self._flat_container = flat_container
         self._component_index = OrderedDict()
         self._construct()
+        self._consider_failure_nodes()
 
     def _construct(self):
+        _logger.info('Constructing in-memory RBD')
         self._form_basic_rbd()
+        _logger.info('Finished constructing in-memory RBD')
 
     def _form_basic_rbd(self):
         # Create ROOT Component and add to index
-        root = Component('COMPOUND', 'ROOT', None, 1)
+        root = Component('COMPOUND', 'ROOT', None, 1, Logic('ROOT'))
         self._component_index[root.name] = root
         # Build component index
         for f_component in self._flat_container.component_list:
@@ -146,7 +150,46 @@ class Rbd(object):
             if parent is not None and component.type in ('compound', 'root'):
                 self._component_index[parent.name].add_child(component)
 
+    def _consider_failure_nodes(self):
+        """
+        TODO
+        """
         for name, component in self._component_index.items():
-            print(name)
-            for child in component:
-                print('  ' + child.name)
+            if component.type not in ('compound', 'root'):
+                pass
+
+    def serialize(self, emitter):
+        """
+        Serialize the components to the emitter.
+        """
+        _logger.info('Serialising RBD')
+        # The components remaining to be processed. Contents shall be tuples of
+        # type <Component, deque>, where deque is the page prefix of the comp.
+        component_stack = deque()
+        root_component = self._component_index['ROOT']
+        component_stack.appendleft(
+            Rbd.PreSerializedComponent(root_component, deque()))
+        while component_stack:
+            current = component_stack.popleft()
+            self._serialize_component(current)
+            for component in current.component:
+                [   # If more than one instance of a component exists within
+                    # another component, then append an ID to that component's
+                    # path. Otherwise, just use the path of the parent.
+                    component_stack.appendleft(
+                        Rbd.PreSerializedComponent(component, current.path +
+                                                   deque([i])))
+                    for i in range(component.instances, 0, -1)
+                ] if component.instances > 1 else component_stack.appendleft(
+                    Rbd.PreSerializedComponent(component, current.path))
+
+        _logger.info('Finished serialising RBD')
+
+    def _serialize_component(self, component):
+        print("Serializing: {} with path: {}".format(
+            component.component, component.path))
+
+    class PreSerializedComponent(object):
+        def __init__(self, component, path):
+            self.component = component
+            self.path = path
