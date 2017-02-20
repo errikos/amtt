@@ -8,6 +8,7 @@ import re
 from collections import deque
 from collections import OrderedDict
 from sliding_window import window
+
 from .emitter.excel import RbdBlock, RbdNode, RbdConnection
 
 _logger = logging.getLogger('exporter.isograph.rbd')
@@ -71,6 +72,10 @@ class Component(object):
     def logic(self, logic):
         self._logic = logic
 
+    @property
+    def child_count(self):
+        return len(self._children)
+
 
 class Logic(object):
     """
@@ -87,6 +92,11 @@ class Logic(object):
         self._name = tokens[0]
         self._voting = tokens[1] if len(tokens) > 1 else None
         self._total = tokens[2] if len(tokens) > 2 else None
+
+    def __eq__(self, other):
+        return self.name == other.name \
+               and self.voting == other.voting \
+               and self.total == other.total
 
     def __str__(self):
         s = 'Logic: ' + self._name
@@ -116,14 +126,14 @@ class Rbd(object):
         self._flat_container = flat_container
         self._component_index = OrderedDict()
         self._construct()
-        self._consider_failure_nodes()
 
     def _construct(self):
         _logger.info('Constructing in-memory RBD')
-        self._form_basic_rbd()
+        self._initialize_structures()
+        self._detect_component_logic()
         _logger.info('Finished constructing in-memory RBD')
 
-    def _form_basic_rbd(self):
+    def _initialize_structures(self):
         # Create ROOT Component and add to index
         root = Component('COMPOUND', 'ROOT', None, 1, Logic('ROOT'))
         self._component_index[root.name] = root
@@ -150,17 +160,19 @@ class Rbd(object):
             if parent is not None and component.type in ('compound', 'root'):
                 self._component_index[parent.name].add_child(component)
 
-    def _consider_failure_nodes(self):
+    def _detect_component_logic(self):
         """
-        TODO
+        For the components that have no logic assigned and no children,
+        tries to figure out their logic based on the FaultNodes/FaultEvents
+        in the definition.
         """
-        for name, component in self._component_index.items():
-            if component.type not in ('compound', 'root'):
+        for component in self._component_index.values():
+            if component.logic is None and component.child_count > 0:
                 pass
 
     def serialize(self, emitter):
         """
-        Serialize the components to the emitter.
+        Serialise the components to the emitter.
         """
         _logger.info('Serialising RBD')
         # The components remaining to be processed. Contents shall be tuples of
@@ -171,23 +183,84 @@ class Rbd(object):
             Rbd.PreSerializedComponent(root_component, deque()))
         while component_stack:
             current = component_stack.popleft()
-            self._serialize_component(current)
-            for component in current.component:
-                [   # If more than one instance of a component exists within
-                    # another component, then append an ID to that component's
+            self._serialize_component(current, emitter)
+            for child in current.component:
+                [   # If more than one instances of a child exist within
+                    # another component, then append an ID to the child's
                     # path. Otherwise, just use the path of the parent.
                     component_stack.appendleft(
-                        Rbd.PreSerializedComponent(component, current.path +
+                        Rbd.PreSerializedComponent(child, current.path +
                                                    deque([i])))
-                    for i in range(component.instances, 0, -1)
-                ] if component.instances > 1 else component_stack.appendleft(
-                    Rbd.PreSerializedComponent(component, current.path))
+                    for i in range(child.instances, 0, -1)
+                ] if child.instances > 1 else component_stack.appendleft(
+                    Rbd.PreSerializedComponent(child, current.path))
 
         _logger.info('Finished serialising RBD')
 
-    def _serialize_component(self, component):
-        print("Serializing: {} with path: {}".format(
-            component.component, component.path))
+    def _serialize_component(self, packed_component, emitter):
+        """
+        Serialises the given PreSerializedComponent object
+        to Isograph-specific tuples.
+        """
+
+        def make_path(p):
+            return '.' + '.'.join([str(t) for t in p]) \
+                if len(p) > 1 else '.' + str(p[0]) if len(p) == 1 else ''
+
+        prefix = make_path(packed_component.path)
+        component = packed_component.component
+
+        # if component has no children, then nothing to do, return
+        if component.child_count == 0:
+            return
+
+        if component.logic is None:
+            component.logic = Logic('AND')
+
+        # serialise the ROOT component and return
+        if component.logic.name == 'ROOT':
+            for child in component:
+                emitter.add_block(
+                    RbdBlock(
+                        Id=child.name, Page=None, XPosition=0, YPosition=0))
+            return
+
+        logic = component.logic
+
+        # set some layout specific variables
+        xs, ys = 250, 60
+        dx, dy = 0, 0
+
+        if logic.name == 'AND':
+            dx, dy = 150, 0
+        elif logic.name in ('OR', 'ACTIVE'):
+            dx, dy = 0, 150
+        if logic.name == 'ACTIVE':
+            xs += 150
+
+        for block in self._layout_basic_blocks(component, prefix, xs, ys, dx,
+                                               dy):
+            emitter.add_block(block)
+
+        for connection in self._layout_basic_connections():
+            # emitter.add_connection(connection)
+            pass
+
+    @staticmethod
+    def _layout_basic_blocks(component, prefix, xs, ys, dx, dy):
+        k = 0
+        for child in component:
+            id_spec = '{}{}.{}' if child.instances > 1 else '{}{}'
+            for i in range(child.instances):
+                yield RbdBlock(
+                    Id=id_spec.format(child.name, prefix, i + 1),
+                    Page='{}{}'.format(child.parent.name, prefix),
+                    XPosition=xs + k * dx,
+                    YPosition=ys + k * dy)
+                k += 1
+
+    def _layout_basic_connections(self):
+        yield
 
     class PreSerializedComponent(object):
         def __init__(self, component, path):
