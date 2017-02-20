@@ -41,7 +41,7 @@ class RbdNode(object):
 
     def __str__(self):
         return ','.join(
-            (len(SCHEMA['RbdBlocks']) *
+            (len(SCHEMA['RbdNodes']) *
              ['{}:{}'])).format(*chain.from_iterable(vars(self).items()))
 
     @staticmethod
@@ -56,7 +56,7 @@ class RbdConnection(object):
 
     def __str__(self):
         return ','.join(
-            (len(SCHEMA['RbdBlocks']) *
+            (len(SCHEMA['RbdConnections']) *
              ['{}:{}'])).format(*chain.from_iterable(vars(self).items()))
 
     @staticmethod
