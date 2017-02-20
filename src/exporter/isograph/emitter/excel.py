@@ -2,7 +2,8 @@
 Microsoft Office Excel emitter module.
 """
 
-from . import Emitter
+from . import IsographEmitter, RbdBlock, RbdConnection, RbdNode
+from . import SCHEMA
 from collections import OrderedDict
 
 import pyexcel_xls as xls
@@ -10,48 +11,8 @@ import logging
 
 _logger = logging.getLogger('exporter.isograph.emitter')
 
-_schema = OrderedDict([
-    ('RbdBlocks', ['Id', 'Page', 'XPosition', 'YPosition']),
-    ('RbdRepeatBlocks', ['Id', 'Page', 'XPosition', 'YPosition']),
-    ('RbdNodes', ['Id', 'Page', 'Vote', 'XPosition', 'YPosition']),
-    ('RbdConnections', [
-        'Id', 'Page', 'Type', 'InputObjectIndex', 'InputObjectType',
-        'OutputObjectIndex', 'OutputObjectType'
-    ]),
-])
 
-
-class RbdBlock(object):
-    def __init__(self, **kwargs):
-        for key in _schema['RbdBlocks']:
-            setattr(self, key, kwargs.get(key))
-
-    @staticmethod
-    def header():
-        return RbdBlock(**{k: k for k in _schema['RbdBlocks']})
-
-
-class RbdNode(object):
-    def __init__(self, **kwargs):
-        for key in _schema['RbdNodes']:
-            setattr(self, key, kwargs.get(key))
-
-    @staticmethod
-    def header():
-        return RbdNode(**{k: k for k in _schema['RbdNodes']})
-
-
-class RbdConnection(object):
-    def __init__(self, **kwargs):
-        for key in _schema['RbdConnections']:
-            setattr(self, key, kwargs.get(key))
-
-    @staticmethod
-    def header():
-        return RbdConnection(**{k: k for k in _schema['RbdConnections']})
-
-
-class ExcelEmitter(Emitter):
+class ExcelEmitter(IsographEmitter):
     """
     Microsoft Office Excel emitter for Isograph.
     """
@@ -80,9 +41,9 @@ class ExcelEmitter(Emitter):
 
     def commit(self):
         data = OrderedDict(
-            [(sheet, [[getattr(row, k) for k in _schema[sheet]]
+            [(sheet, [[getattr(row, k) for k in SCHEMA[sheet]]
                       for row in getattr(self, attr).values()])
-             for sheet, attr in zip(_schema.keys(), self.sheet_attributes)])
+             for sheet, attr in zip(SCHEMA.keys(), self.sheet_attributes)])
         xls.save_data(self._file_path, data)
 
     def get_index_type_by_id(self, id):
