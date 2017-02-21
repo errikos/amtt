@@ -14,8 +14,7 @@ class FlatComponent(object):
     """
 
     def __init__(self, **kwargs):
-        for arg in ('element', 'name', 'parent', 'component_code',
-                    'instances'):
+        for arg in ('type', 'name', 'parent', 'code', 'instances'):
             setattr(self, arg, kwargs[arg])
 
 
@@ -25,7 +24,7 @@ class FlatLogic(object):
     """
 
     def __init__(self, **kwargs):
-        for arg in ('type', 'gate', 'logic'):
+        for arg in ('type', 'component', 'logic'):
             setattr(self, arg, kwargs[arg])
 
 
