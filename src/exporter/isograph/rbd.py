@@ -152,11 +152,17 @@ class Rbd(object):
         for f_component in self._flat_container.component_list:
             index = self._component_index if f_component.type.lower() in (
                 'compound', 'basic', 'group') else self._failure_index
-            if f_component.parent not in index:
+            parent_index = self._component_index \
+                if f_component.parent in self._component_index \
+                else self._failure_index \
+                if f_component.parent in self._failure_index \
+                else None
+            if parent_index is None:
                 _logger.warning('Component "{}" has an invalid parent'.format(
                     f_component.name))
             else:
-                index[f_component.name].parent = index[f_component.parent]
+                index[f_component.name].parent = parent_index[
+                    f_component.parent]
         # Assign logic
         for f_logic in self._flat_container.logic_list:
             index = self._component_index if f_logic.type.lower(
