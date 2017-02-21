@@ -177,7 +177,7 @@ class Rbd(object):
 
     def _detect_component_logic(self):
         """
-        For the components that have no logic assigned and no children,
+        For the components that have no logic assigned, but have children,
         tries to figure out their logic based on the FaultNodes/FaultEvents
         in the definition.
         """
