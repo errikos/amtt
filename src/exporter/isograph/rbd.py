@@ -125,39 +125,48 @@ class Rbd(object):
     def __init__(self, flat_container):
         self._flat_container = flat_container
         self._component_index = OrderedDict()
+        self._failure_index = OrderedDict()
         self._construct()
 
     def _construct(self):
         _logger.info('Constructing in-memory RBD')
+        # Initialise the structures from the data given
         self._initialize_structures()
+        # Detect the logic of the various components,
+        # for which a logic was not assigned explicitly.
         self._detect_component_logic()
         _logger.info('Finished constructing in-memory RBD')
 
     def _initialize_structures(self):
         # Create ROOT Component and add to index
-        root = Component('COMPOUND', 'ROOT', None, 1, Logic('ROOT'))
+        root = Component('Compound', 'ROOT', None, 1, Logic('ROOT'))
         self._component_index[root.name] = root
-        # Build component index
+        # Build components and failures index
         for f_component in self._flat_container.component_list:
-            self._component_index[f_component.name] = Component(
-                f_component.element, f_component.name,
-                f_component.component_code, f_component.instances)
+            index = self._component_index if f_component.type.lower() in (
+                'compound', 'basic', 'group') else self._failure_index
+            index[f_component.name] = Component(
+                f_component.type, f_component.name, f_component.code,
+                f_component.instances)
         # Assign parents
         for f_component in self._flat_container.component_list:
-            if f_component.parent not in self._component_index:
+            index = self._component_index if f_component.type.lower() in (
+                'compound', 'basic', 'group') else self._failure_index
+            if f_component.parent not in index:
                 _logger.warning('Component "{}" has an invalid parent'.format(
                     f_component.name))
             else:
-                self._component_index[
-                    f_component.name].parent = self._component_index[
-                        f_component.parent]
+                index[f_component.name].parent = index[f_component.parent]
         # Assign logic
         for f_logic in self._flat_container.logic_list:
-            self._component_index[f_logic.gate].logic = Logic(f_logic.logic)
+            index = self._component_index if f_logic.type.lower(
+            ) == 'inherited' else self._failure_index
+            index[f_logic.component].logic = Logic(f_logic.logic)
         # Assign children
         for name, component in self._component_index.items():
             parent = component.parent
-            if parent is not None and component.type in ('compound', 'root'):
+            if parent is not None and component.type.lower() in (
+                    'compound', 'basic', 'group'):
                 self._component_index[parent.name].add_child(component)
 
     def _detect_component_logic(self):
