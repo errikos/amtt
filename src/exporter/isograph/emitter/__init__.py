@@ -6,7 +6,7 @@ import logging
 from itertools import chain
 from collections import OrderedDict
 
-_logger = logging.getLogger('exporter.isograph.emitter')
+_logger = logging.getLogger(__name__)
 
 SCHEMA = OrderedDict([
     ('RbdBlocks', ['Id', 'Page', 'XPosition', 'YPosition']),

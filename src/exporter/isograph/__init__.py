@@ -10,7 +10,7 @@ from .emitter.excel import ExcelEmitter
 from datetime import datetime as dt
 import logging
 
-_logger = logging.getLogger('exporter.isograph')
+_logger = logging.getLogger(__name__)
 
 
 class IsographExporter(Exporter):

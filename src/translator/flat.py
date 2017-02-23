@@ -5,7 +5,7 @@ Contains the translator flat elements, as read from the input source.
 import logging
 from exporter.isograph.rbd import Logic
 
-_logger = logging.getLogger('translator.flat')
+_logger = logging.getLogger(__name__)
 
 
 class FlatComponent(object):

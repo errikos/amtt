@@ -7,7 +7,7 @@ import logging
 import csv
 from . import Loader
 
-_logger = logging.getLogger('loader.csv')
+_logger = logging.getLogger(__name__)
 
 
 def handler(args):

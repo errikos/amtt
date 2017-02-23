@@ -11,7 +11,7 @@ from sliding_window import window
 
 from .emitter.excel import RbdBlock, RbdNode, RbdConnection
 
-_logger = logging.getLogger('exporter.isograph.rbd')
+_logger = logging.getLogger(__name__)
 
 
 class Component(object):
@@ -80,10 +80,13 @@ class Component(object):
 class Logic(object):
     """
     Class modelling an RBD component layout:
-        - ROOT: indicates the layout of the ROOT component
+        - ROOT: indicates the layout of the ROOT component,
+                should only be used for the ROOT component
         - AND: connection in series
         - OR: connection in parallel
         - ACTIVE(x,y): connection in parallel with x out-of y voting
+        - SERIES: layout in series
+        - PARALLEL: layout in parallel
     """
 
     def __init__(self, raw_string):

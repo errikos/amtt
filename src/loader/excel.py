@@ -9,7 +9,7 @@ import pyexcel
 from . import Loader
 from errors import LoaderError
 
-_logger = logging.getLogger('loader.excel')
+_logger = logging.getLogger(__name__)
 
 
 def handler(args):

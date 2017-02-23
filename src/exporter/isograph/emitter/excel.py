@@ -9,7 +9,7 @@ from collections import OrderedDict
 import pyexcel_xls as xls
 import logging
 
-_logger = logging.getLogger('exporter.isograph.emitter')
+_logger = logging.getLogger(__name__)
 
 
 class ExcelEmitter(IsographEmitter):
