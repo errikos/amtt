@@ -215,15 +215,13 @@ class Rbd(object):
     def _build_graphs(self):
         _logger.info("Building graphs")
         # Build the components graph
-        self._components_graph.add_nodes_from(self._components_index.values())
         [   # Add edges
             self._components_graph.add_edge(comp.parent, comp)
             for comp in filter(lambda c: c.parent is not None,
                                self._components_index.values())
         ]
         # Build the failures graph
-        self._failures_graph.add_nodes_from(self._failures_index.values())
-        [
+        [   # Add edges
             self._failures_graph.add_edge(fail.parent, fail)
             for fail in filter(lambda f: f.parent is not None,
                                self._failures_index.values())
