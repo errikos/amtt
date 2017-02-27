@@ -31,7 +31,4 @@ class IsographExporter(Exporter):
     def export(self):
         # create block diagram from input
         block_diagram = Rbd(self._translator.flats)
-        # dump block diagram to output
-        block_diagram.serialize(self._emitter)
-        # write the output file
-        self._emitter.commit()
+        # TODO: dump block diagram to output
