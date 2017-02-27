@@ -238,22 +238,6 @@ class Rbd(object):
         p = nx.drawing.nx_pydot.to_pydot(self._failures_graph)
         p.write_png(os.path.join(output_dir, 'failures.png'))
 
-    @staticmethod
-    def _layout_graph(graph):
-        ts_list = nx.topological_sort(graph)
-        L = nx.bfs_successors(graph, ts_list[0])
-        pos = {ts_list[0]: (0, 0)}
-        dx, dy = 5, 3
-        x, y = dx, 0
-        for node in ts_list:
-            if node in L:
-                for v in L[node]:
-                    pos[v] = (x, y)
-                    y += dy
-                x += dx
-                y = 0
-        return pos
-
     def print_indexes(self):
         """DEBUG"""
         print("=== Components")
