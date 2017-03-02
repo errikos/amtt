@@ -2,12 +2,33 @@
 """
 Main entry-point
 """
+import os
 import sys
 import argparse
 import logging
 
 from translator import Translator
 from loader import *
+
+
+def setup_path():
+    if sys.platform != 'win32':
+        return
+    program_files_64 = os.path.join('C:\\', 'Program Files (x86)')
+    program_files_32 = os.path.join('C:\\', 'Program Files')
+    program_files_dir = program_files_64 if os.path.isdir(
+        program_files_64) else program_files_32
+    candidates = filter(lambda dir: dir.startswith('Graphviz'),
+                        os.listdir(program_files_dir))
+    graphviz_path = None
+    for dir in candidates:
+        graphviz_path = os.path.join(program_files_dir, dir, 'bin')
+        if os.path.isdir(graphviz_path):
+            break
+    if not graphviz_path:
+        raise OSError('Graphviz was not found. ' +
+                      'Please install Graphviz and try again.')
+    os.environ['PATH'] += ';' + graphviz_path
 
 
 def parse_arguments():
@@ -71,6 +92,7 @@ def parse_arguments():
 
 
 def main():
+    setup_path()
     args = parse_arguments()
     # configure logging
     if args.verbosity > 2:
