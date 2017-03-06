@@ -8,7 +8,8 @@ Under (heavy) development
 
 import logging
 
-from . import Loader, LoaderError
+from . import Loader
+from errors import LoaderError
 
 # Database table mappings
 from sqlalchemy.ext.declarative import declarative_base

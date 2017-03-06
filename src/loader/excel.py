@@ -28,7 +28,7 @@ class ExcelLoader(Loader):
     def __init__(self, file_path):
         self._file_path = file_path
 
-    def load(self, translator):
+    def load(self, container):
         # Sheet names are listed here...
         sheet_names = [
             'Components',
@@ -48,7 +48,7 @@ class ExcelLoader(Loader):
                 name_columns_by_row=0) for sheet_name in sheet_names
         ]
         [[  # Call the appropriate method for each sheet and store rows.
-            getattr(translator.flats, method)(**{
+            getattr(container, method)(**{
                 key.lower().replace(' ', '_').strip(): Loader.strip(val)
                 for key, val in zip(sheet.colnames, row)
             }) for row in sheet.rows()

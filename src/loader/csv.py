@@ -22,7 +22,7 @@ class CsvLoader(Loader):
     def __init__(self, dir_in):
         self.dir_in = dir_in
 
-    def load(self, translator):
+    def load(self, container):
         # csv file names are listed here...
         file_names = [
             'components.csv',
@@ -44,7 +44,4 @@ class CsvLoader(Loader):
                     for field in reader.fieldnames
                 ]
                 # add the flat components to the translator structures
-                [
-                    getattr(translator.flats, method_name)(**row)
-                    for row in reader
-                ]
+                [getattr(container, method_name)(**row) for row in reader]

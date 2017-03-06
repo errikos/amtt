@@ -11,7 +11,12 @@ from translator import Translator
 from loader import *
 
 
-def setup_path():
+def detect_graphviz():
+    """Effective for Windows systems only.
+
+    Detects the graphviz bin directory and adds it to PATH,
+    so that networkx can execute the graphviz binaries (via pydotplus).
+    """
     if sys.platform != 'win32':
         return
     program_files_64 = os.path.join('C:\\', 'Program Files (x86)')
@@ -38,7 +43,6 @@ def parse_arguments():
     parser.add_argument(
         '-t',
         type=str,
-        required=True,
         choices=['isograph'],
         metavar='TARGET',
         dest='target',
@@ -46,6 +50,7 @@ def parse_arguments():
     parser.add_argument(
         '-o',
         type=str,
+        required=True,
         metavar='OUTPUT_BASEDIR',
         dest='output_basedir',
         help='The output base directory')
@@ -55,6 +60,13 @@ def parse_arguments():
         dest='verbosity',
         default=0,
         help='Increase verbosity')
+    parser.add_argument(
+        '-x',
+        '--export-graphs',
+        action='store_true',
+        dest='export_png',
+        help='Export input model graphs as PNG images and exit')
+
     subparsers = parser.add_subparsers(title='Supported input types')
 
     # sub-parser for CSV data source
@@ -88,11 +100,17 @@ def parse_arguments():
     if 'func' not in args:
         parser.print_help()
         sys.exit(1)
+    if not args.export_png and args.target is None:
+        # TARGET is not required when the -x option is specified,
+        # however it is required in all other cases.
+        print(
+            'Missing required argument: TARGET\nRe-run with -h for help.',
+            file=sys.stderr)
+        sys.exit(1)
     return args
 
 
 def main():
-    setup_path()
     args = parse_arguments()
     # configure logging
     if args.verbosity > 2:
@@ -110,6 +128,11 @@ def main():
     loader = args.func(args)
     # create the Translator and start the process
     translator = Translator(loader, args.target, args.output_basedir)
+    translator.parse_model()
+    if args.export_png:
+        detect_graphviz()
+        translator.export_png()
+        sys.exit(0)
     translator.translate()
 
 

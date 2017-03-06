@@ -3,12 +3,11 @@ Contains the translator flat elements, as read from the input source.
 """
 
 import logging
-from exporter.isograph.rbd import Logic
 
 _logger = logging.getLogger(__name__)
 
 
-class FlatComponent(object):
+class ComponentRow(object):
     """
     Class modelling a system Component, as read from the input (flat).
     """
@@ -18,7 +17,7 @@ class FlatComponent(object):
             setattr(self, arg, kwargs[arg])
 
 
-class FlatLogic(object):
+class LogicRow(object):
     """
     Class modelling a Logic entry, as read from the input (flat).
     """
@@ -28,7 +27,7 @@ class FlatLogic(object):
             setattr(self, arg, kwargs[arg])
 
 
-class FlatContainer(object):
+class RowsContainer(object):
     """
     Container for objects as read from the input.
     """
@@ -39,10 +38,10 @@ class FlatContainer(object):
         self._properties = []
 
     def add_component(self, **kwargs):
-        self._components.append(FlatComponent(**kwargs))
+        self._components.append(ComponentRow(**kwargs))
 
     def add_logic(self, **kwargs):
-        self._logic.append(FlatLogic(**kwargs))
+        self._logic.append(LogicRow(**kwargs))
 
     @property
     def component_list(self):
