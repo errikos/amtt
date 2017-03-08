@@ -24,7 +24,6 @@ class IRContainer(object):
         self._components_index = OrderedDict()
         self._failures_index = OrderedDict()
         # Initialize graph structures
-        self._input_graph = nx.DiGraph()
         self._components_graph = nx.DiGraph()
         self._failures_graph = nx.DiGraph()
 
@@ -84,16 +83,24 @@ class IRContainer(object):
         _logger.info('Building graphs')
         # Build the components graph
         [   # Add edges
-            self._components_graph.add_edge(comp.parent, comp)
+            self._components_graph.add_edge(comp.parent.name, comp.name)
             for comp in filter(lambda c: c.parent is not None,
                                self._components_index.values())
         ]
+        # Associate objects
+        for comp in filter(lambda c: c.name in self._components_graph,
+                           self._components_index.values()):
+            self._components_graph.node[comp.name].update(obj=comp)
         # Build the failures graph
         [   # Add edges
-            self._failures_graph.add_edge(fail.parent, fail)
+            self._failures_graph.add_edge(fail.parent.name, fail.name)
             for fail in filter(lambda f: f.parent is not None,
                                self._failures_index.values())
         ]
+        # Associate objects
+        for fail in filter(lambda f: f.name in self._failures_graph,
+                           self._failures_index.values()):
+            self._failures_graph.node[fail.name].update(obj=fail)
 
     def export_graphs(self, output_dir):
         """
@@ -112,3 +119,11 @@ class IRContainer(object):
     @property
     def loaded(self):
         return self._loaded
+
+    @property
+    def component_graph(self):
+        return self._components_graph
+
+    @property
+    def failures_graph(self):
+        return self._failures_graph
