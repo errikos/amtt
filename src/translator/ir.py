@@ -12,6 +12,9 @@ from .entities import SystemElement, ElementLogic
 
 _logger = logging.getLogger(__name__)
 
+IR_GRAPH_ATTRIBUTES = dict(
+    node=dict(shape='box'), )
+
 
 class IRContainer(object):
     """
@@ -24,8 +27,10 @@ class IRContainer(object):
         self._components_index = OrderedDict()
         self._failures_index = OrderedDict()
         # Initialize graph structures
-        self._components_graph = nx.DiGraph()
-        self._failures_graph = nx.DiGraph()
+        self._components_graph = nx.DiGraph(
+            filename='components.png', **IR_GRAPH_ATTRIBUTES)
+        self._failures_graph = nx.DiGraph(
+            filename='failures.png', **IR_GRAPH_ATTRIBUTES)
 
     def load_from_rows(self, row_container):
         """Loads the model from the provided row container"""
@@ -83,7 +88,7 @@ class IRContainer(object):
         _logger.info('Building graphs')
         # Build the components graph
         [   # Add edges
-            self._components_graph.add_edge(comp.parent.name, comp.name)
+            self._components_graph.add_edge(comp.parent.id, comp.id)
             for comp in filter(lambda c: c.parent is not None,
                                self._components_index.values())
         ]
@@ -93,7 +98,7 @@ class IRContainer(object):
             self._components_graph.node[comp.name].update(obj=comp)
         # Build the failures graph
         [   # Add edges
-            self._failures_graph.add_edge(fail.parent.name, fail.name)
+            self._failures_graph.add_edge(fail.parent.id, fail.id)
             for fail in filter(lambda f: f.parent is not None,
                                self._failures_index.values())
         ]
@@ -111,10 +116,9 @@ class IRContainer(object):
         output_dir = os.path.join(os.path.abspath(output_dir), 'graphs')
         if not os.path.isdir(output_dir):
             os.makedirs(output_dir, mode=0o755)
-        p = nx.drawing.nx_pydot.to_pydot(self._components_graph)
-        p.write_png(os.path.join(output_dir, 'components.png'))
-        p = nx.drawing.nx_pydot.to_pydot(self._failures_graph)
-        p.write_png(os.path.join(output_dir, 'failures.png'))
+        for g in (self._components_graph, self._failures_graph):
+            pdg = nx.drawing.nx_pydot.to_pydot(g)
+            pdg.write_png(os.path.join(output_dir, g.graph['filename']))
 
     @property
     def loaded(self):

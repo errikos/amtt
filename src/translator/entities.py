@@ -22,7 +22,11 @@ class SystemElement(object):
         self._parent = None
 
     def __str__(self):
-        return '{}: {}'.format(self.type, self.name)
+        return '{}_{}'.format(self.type, self.name)
+
+    @property
+    def id(self):
+        return '{}_{}'.format(self.type, self.name)
 
     @property
     def type(self):
