@@ -93,9 +93,9 @@ class IRContainer(object):
                                self._components_index.values())
         ]
         # Associate objects
-        for comp in filter(lambda c: c.name in self._components_graph,
+        for comp in filter(lambda c: c.id in self._components_graph,
                            self._components_index.values()):
-            self._components_graph.node[comp.name].update(obj=comp)
+            self._components_graph.node[comp.id].update(obj=comp)
         # Build the failures graph
         [   # Add edges
             self._failures_graph.add_edge(fail.parent.id, fail.id)
@@ -103,9 +103,9 @@ class IRContainer(object):
                                self._failures_index.values())
         ]
         # Associate objects
-        for fail in filter(lambda f: f.name in self._failures_graph,
+        for fail in filter(lambda f: f.id in self._failures_graph,
                            self._failures_index.values()):
-            self._failures_graph.node[fail.name].update(obj=fail)
+            self._failures_graph.node[fail.id].update(obj=fail)
 
     def export_graphs(self, output_dir):
         """
