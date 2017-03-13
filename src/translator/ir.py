@@ -6,6 +6,7 @@ Can be considered as the Intermediate Representation (IR) of the translator.
 import os
 import logging
 import networkx as nx
+import itertools
 from collections import OrderedDict
 
 from .entities import SystemElement, ElementLogic
@@ -104,7 +105,8 @@ class IRContainer(object):
         ]
         # Associate objects
         for fail in filter(lambda f: f.id in self._failures_graph,
-                           self._failures_index.values()):
+                           itertools.chain(self._failures_index.values(),
+                                           self._components_index.values())):
             self._failures_graph.node[fail.id].update(obj=fail)
 
     def export_graphs(self, output_dir):
