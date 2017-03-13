@@ -62,6 +62,10 @@ class Translator(object):
     def output_basedir(self):
         return self._output_basedir
 
+    @property
+    def ir_container(self):
+        return self._ir_container
+
 
 class ExporterFactory(object):
     @staticmethod
