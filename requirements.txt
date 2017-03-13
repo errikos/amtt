@@ -17,6 +17,7 @@ pyparsing==2.2.0
 pytz==2016.10
 requests==2.13.0
 six==1.10.0
+sliding-window==0.0.2
 snowballstemmer==1.2.1
 Sphinx==1.5.3
 SQLAlchemy==1.1.6
