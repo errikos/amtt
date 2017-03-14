@@ -7,6 +7,7 @@ import sys
 import argparse
 import logging
 
+from coloredtty import ColorizingStreamHandler
 from translator import Translator
 from loader import *
 
@@ -122,7 +123,8 @@ def main():
     logging.basicConfig(
         format='%(asctime)s - %(name)s:%(levelname)8s: %(message)s',
         datefmt='%H:%M:%S',
-        level=level)
+        level=level,
+        handlers=[ColorizingStreamHandler()])
     # call the appropriate handler for the input type
     # and get the appropriate loader
     loader = args.func(args)
