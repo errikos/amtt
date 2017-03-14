@@ -63,6 +63,7 @@ class ColorizingStreamHandler(logging.StreamHandler):
             self.handleError(record)
 
     if os.name != 'nt':
+
         def output_colorized(self, message):
             self.stream.write(message)
     else:
@@ -70,14 +71,14 @@ class ColorizingStreamHandler(logging.StreamHandler):
         ansi_esc = re.compile(r'\x1b\[((?:\d+)(?:;(?:\d+))*)m')
 
         nt_color_map = {
-            0: 0x00,    # black
-            1: 0x04,    # red
-            2: 0x02,    # green
-            3: 0x06,    # yellow
-            4: 0x01,    # blue
-            5: 0x05,    # magenta
-            6: 0x03,    # cyan
-            7: 0x07,    # white
+            0: 0x00,  # black
+            1: 0x04,  # red
+            2: 0x02,  # green
+            3: 0x06,  # yellow
+            4: 0x01,  # blue
+            5: 0x05,  # magenta
+            6: 0x03,  # cyan
+            7: 0x07,  # white
         }
 
         def output_colorized(self, message):
@@ -87,7 +88,7 @@ class ColorizingStreamHandler(logging.StreamHandler):
             fd = getattr(self.stream, 'fileno', None)
             if fd is not None:
                 fd = fd()
-                if fd in (1, 2): # stdout or stderr
+                if fd in (1, 2):  # stdout or stderr
                     h = ctypes.windll.kernel32.GetStdHandle(-10 - fd)
             while parts:
                 text = parts.pop(0)
@@ -104,12 +105,13 @@ class ColorizingStreamHandler(logging.StreamHandler):
                             elif 30 <= p <= 37:
                                 color |= self.nt_color_map[p - 30]
                             elif p == 1:
-                                color |= 0x08 # foreground intensity on
-                            elif p == 0: # reset to default color
+                                color |= 0x08  # foreground intensity on
+                            elif p == 0:  # reset to default color
                                 color = 0x07
                             else:
-                                pass # error condition ignored
-                        ctypes.windll.kernel32.SetConsoleTextAttribute(h, color)
+                                pass  # error condition ignored
+                        ctypes.windll.kernel32.SetConsoleTextAttribute(h,
+                                                                       color)
 
     def colorize(self, message, record):
         if record.levelno in self.level_map:
@@ -122,8 +124,8 @@ class ColorizingStreamHandler(logging.StreamHandler):
             if bold:
                 params.append('1')
             if params:
-                message = ''.join((self.csi, ';'.join(params),
-                                   'm', message, self.reset))
+                message = ''.join((self.csi, ';'.join(params), 'm', message,
+                                   self.reset))
         return message
 
     def format(self, record):
