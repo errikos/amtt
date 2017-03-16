@@ -24,6 +24,9 @@ class SystemElement(object):
     def __str__(self):
         return '{}_{}'.format(self.type, self.name)
 
+    def is_type(self, type_str):
+        return self.type.lower() == type_str.lower()
+
     @property
     def id(self):
         return '{}_{}'.format(self.type, self.name)
@@ -31,6 +34,10 @@ class SystemElement(object):
     @property
     def type(self):
         return self._type
+
+    @type.setter
+    def type(self, type):
+        self._type = type
 
     @property
     def name(self):
@@ -73,11 +80,9 @@ class ElementLogic(object):
         self._voting = tokens[1] if len(tokens) > 1 else None
         self._total = tokens[2] if len(tokens) > 2 else None
 
-    def __eq__(self, other):
-        """Overload for comparing two Logic objects"""
-        return self.name == other.name \
-            and self.voting == other.voting \
-            and self.total == other.total
+    def __eq__(self, logic_str):
+        """Overload for comparing with a string"""
+        return self.name.lower() == logic_str.lower()
 
     def __str__(self):
         s = 'Logic: ' + self._name
