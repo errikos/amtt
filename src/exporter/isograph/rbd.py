@@ -238,7 +238,11 @@ class _CompoundBlock(object):
                                             d.nodes_iter()):
                                 d.add_edge(n, node_out)
                         elif uo.logic == 'and':
-                            pass
+                            for n1, n2 in window(
+                                    filter(lambda x: x.name == vo.name,
+                                           d.nodes_iter()), 2):
+                                if n2 is not None:
+                                    d.add_edge(n1, n2)
 
         # Graph representing the block's internal structure
         root = next(filter(lambda x: g.in_degree(x) == 0, g.nodes_iter()))
