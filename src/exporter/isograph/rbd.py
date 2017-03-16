@@ -11,6 +11,7 @@ import pydotplus
 
 from enum import Enum
 from collections import OrderedDict
+from itertools import groupby
 from sliding_window import window
 from errors import ExporterError
 
@@ -29,6 +30,21 @@ def get_node_object(g, n):
         _logger.warning('Requested an associated object from a node, however:')
         _logger.warning('* node %s has no associated object', str(n))
     return obj
+
+
+def disconnected(graph):
+    return nx.number_weakly_connected_components(graph) > 1
+
+
+def find_edges(graph):
+    if disconnected(graph):
+        return None, None
+    else:
+        start = next(
+            filter(lambda x: graph.in_degree(x) == 0, graph.nodes_iter()))
+        end = next(
+            filter(lambda x: graph.out_degree(x) == 0, graph.nodes_iter()))
+        return start, end
 
 
 layout = Enum('layout', 'SERIES PARALLEL')
@@ -104,7 +120,6 @@ class _CompoundBlock(object):
             return node, depth, parent
 
         def merge_group_diagrams(group_node):
-            print(group_node)
             o = get_node_object(g, group_node)
             if o.logic is None and g.out_degree(group_node) > 1:
                 _logger.error('In Group element: %s,', o.name)
@@ -116,29 +131,80 @@ class _CompoundBlock(object):
                 # When the group contains only one child, avoid doing all
                 # the extra work. Just take the child's diagram and remove it.
                 t = next(g.neighbors_iter(group_node))
-                g.node[group_node].update(diagram=g.node[t].get('diagram'))
+                g.node[group_node].update(
+                    diagram=g.node[t].get('diagram'),
+                    hint=g.node[t].get('hint'))
                 g.remove_node(t)
                 return
             # Group has multiple children
             nodes_to_merge = g.neighbors(group_node)
+            # Find nodes with layout hint and move them to the end
+            # WARNING: Due to tabular format restrictions, if the translator
+            #          has gotten hints for more than one nodes, it cannot
+            #          guarantee a specific output order for those nodes.
+            #          The only guarantee is that they will be put at the end
+            #          of the current group.
             with_hint = filter(lambda x: g.node[x].get('hint') is not None,
                                nodes_to_merge)
+            with_hint = list(with_hint)
+            if len(with_hint) > 1:
+                _logger.warning('In Group element: %s,', o.name)
+                _logger.warning(
+                    '* encountered more than one children with hint')
             for x in with_hint:
                 nodes_to_merge.remove(x)
                 nodes_to_merge.append(x)
-            if o.logic == 'and':
-                # TODO: Logic is AND
-                for n1, n2 in window(nodes_to_merge):
-                    n1d = g.node[n1].get('diagram')
-                    n2d = g.node[n2].get('diagram')
+                g.node[group_node].update(hint=g.node[x].get('hint'))
+            # Start building merged diagram
+            diagram = nx.DiGraph(**GRAPH_ATTRIBUTES)
+            if o.logic is None:
+                _logger.error('In Group element: %s', o.name)
+                _logger.error('* tried to merge the children of a Group ' +
+                              'without logic')
+                raise NotImplementedError(
+                    'Merging Group without logic is not yet supported')
+            elif o.logic == 'and':
+                for n1, n2 in window(nodes_to_merge, 2):
+                    if n2 is not None:
+                        for i in range(o.instances):
+                            n1d = g.node[n1].get('diagram')
+                            n2d = g.node[n2].get('diagram')
+                            d1 = get_diagram_instance(n1d, i)
+                            d2 = get_diagram_instance(n2d, i)
+                            diagram.add_edges_from(d1.edges())
+                            diagram.add_edges_from(d2.edges())
+                            s1, e1 = find_edges(d1)
+                            if not disconnected(d2):
+                                s2, e2 = find_edges(d2)
+                                diagram.add_edge(e1, s2)
+                            else:  # d2 is disconnected
+                                func = nx.weakly_connected_component_subgraphs
+                                for wkc in func(d2):
+                                    s2, e2 = find_edges(wkc)
+                                    diagram.add_edge(e1, s2)
             elif o.logic in ('or', 'active'):
                 # TODO: Logic is OR or ACTIVE
                 pass
+            g.node[group_node].update(diagram=diagram)
             g.remove_nodes_from(nodes_to_merge)
+
+        def get_diagram_instance(diagram, instance):
+            d = diagram.copy()  # Copy the current diagram
+            for name, nodelist in groupby(
+                    d.nodes_iter(), key=lambda x: x.name):
+                nodelist = list(nodelist)
+                length = len(nodelist)
+                if length == 1:
+                    nodelist[0].instance = instance + 1
+                else:
+                    for i in range(length):
+                        current = nodelist[i].instance
+                        nodelist[i].instance = instance * length + current
+            return d
 
         # Graph representing the block's internal structure
         ig = nx.DiGraph(**GRAPH_ATTRIBUTES)
-        root = nx.topological_sort(g)[0]
+        root = next(filter(lambda x: g.in_degree(x) == 0, g.nodes_iter()))
         logic = get_node_object(g, root).logic
         for _ in filter(lambda n: get_node_object(g, n).is_type('group'), g):
             # TODO: Handle grouped elements by using failures_graph
@@ -157,6 +223,8 @@ class _CompoundBlock(object):
                 merge_group_diagrams(dg)
                 # TODO: Raise resulting node upwards
                 # break
+            dg = next(g.neighbors_iter(root))
+            export_graph_to_png(g.node[dg].get('diagram'), 'TEST')
             break
         else:
             if logic == 'and':
@@ -220,6 +288,10 @@ class _RbdBlock(object):
     @property
     def instance(self):
         return self._instance
+
+    @instance.setter
+    def instance(self, instance):
+        self._instance = instance
 
 
 class _RbdNode(object):
