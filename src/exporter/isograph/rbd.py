@@ -9,8 +9,10 @@ import logging
 import networkx as nx
 import pydotplus
 
+from enum import Enum
 from collections import OrderedDict
 from sliding_window import window
+from errors import ExporterError
 
 _logger = logging.getLogger(__name__)
 
@@ -18,6 +20,18 @@ _logger = logging.getLogger(__name__)
 
 GRAPH_ATTRIBUTES = dict(
     graph=dict(rankdir='LR'), )
+
+
+def get_node_object(g, n):
+    """Returns the object associated with node n from networkx graph g"""
+    obj = g.node[n].get('obj')
+    if obj is None:
+        _logger.warning('Requested an associated object from a node, however:')
+        _logger.warning('* node %s has no associated object', str(n))
+    return obj
+
+
+layout = Enum('layout', 'SERIES PARALLEL')
 
 
 class _CompoundBlock(object):
@@ -37,74 +51,136 @@ class _CompoundBlock(object):
             for u, v in nx.bfs_edges(g, root):
                 if u != root:
                     break
-                name = g.node[v]['obj'].name
-                instances = g.node[v]['obj'].instances
-                if instances > 1:
-                    for i in range(1, instances + 1):
-                        yield _RbdBlock(name, type='Rbd block', instance=i)
+                vo = get_node_object(g, v)
+                if vo.instances > 1:
+                    for i in range(1, vo.instances + 1):
+                        yield _RbdBlock(vo.name, type='Rbd block', instance=i)
                 else:
-                    yield _RbdBlock(name, type='Rbd block')
+                    yield _RbdBlock(vo.name, type='Rbd block')
+
+        def look_for_hint(n):
+            r = next(filter(lambda x: f.in_degree(x) == 0, f.nodes_iter()))
+            for u, v in nx.dfs_edges(f, r):
+                if get_node_object(g, n).name == get_node_object(f, v).name:
+                    logic = get_node_object(f, u).logic
+                    if logic in ('or', 'active'):
+                        g.node[n].update(hint=layout.PARALLEL)
+                    elif logic == 'and':
+                        g.node[n].update(hint=layout.SERIES)
+
+        def create_basic_diagram(leaf):
+            o = get_node_object(g, leaf)
+            logic = get_node_object(g, next(nx.all_neighbors(g, leaf))).logic
+            diagram = nx.DiGraph(**GRAPH_ATTRIBUTES)
+            if o.instances > 1:
+                if logic is None:
+                    diagram.add_nodes_from(
+                        (_RbdBlock(o.name, type='Rbd block', instance=i)
+                         for i in range(1, o.instances + 1)))
+                elif logic == 'and':
+                    diagram.add_edges_from((
+                        (_RbdBlock(o.name, type='Rbd block', instance=i),
+                         _RbdBlock(o.name, type='Rbd block', instance=j))
+                        for i, j in window(range(1, o.instances + 1), 2)))
+                elif logic in ('or', 'active'):
+                    pass
+                else:  # Invalid logic
+                    _logger.error('Leaf node %s has an invalid logic', o.name)
+            else:
+                diagram.add_node(_RbdBlock(o.name, type='Rbd block'))
+            g.node[leaf].update(diagram=diagram)
 
         def find_deepest_group(root):
-            parent, node, depth = None, None, 0
+            """
+            Starting from root, finds the deepest group in spec_graph.
+            Returns the deepest group itself, its depth and its parent.
+            """
+            node, depth, parent = None, 0, None
             for u, v in nx.dfs_edges(g, root):
                 if g.node[v]['obj'].type.lower() == 'group':
                     d = nx.shortest_path_length(g, root, v)
                     if d > depth:
-                        parent, node, depth = u, v, d
-            return parent, node, depth
+                        node, depth, parent = v, d, u
+            return node, depth, parent
+
+        def merge_group_diagrams(group_node):
+            print(group_node)
+            o = get_node_object(g, group_node)
+            if o.logic is None and g.out_degree(group_node) > 1:
+                _logger.error('In Group element: %s,', o.name)
+                _logger.error('* element has no logic, but multiple children')
+                raise ExporterError('A Group element without logic ' +
+                                    'cannot have multiple children')
+            o.type = 'Compound'
+            if g.out_degree(group_node) == 1:
+                # When the group contains only one child, avoid doing all
+                # the extra work. Just take the child's diagram and remove it.
+                t = next(g.neighbors_iter(group_node))
+                g.node[group_node].update(diagram=g.node[t].get('diagram'))
+                g.remove_node(t)
+                return
+            # Group has multiple children
+            nodes_to_merge = g.neighbors(group_node)
+            with_hint = filter(lambda x: g.node[x].get('hint') is not None,
+                               nodes_to_merge)
+            for x in with_hint:
+                nodes_to_merge.remove(x)
+                nodes_to_merge.append(x)
+            if o.logic == 'and':
+                # TODO: Logic is AND
+                for n1, n2 in window(nodes_to_merge):
+                    n1d = g.node[n1].get('diagram')
+                    n2d = g.node[n2].get('diagram')
+            elif o.logic in ('or', 'active'):
+                # TODO: Logic is OR or ACTIVE
+                pass
+            g.remove_nodes_from(nodes_to_merge)
 
         # Graph representing the block's internal structure
         ig = nx.DiGraph(**GRAPH_ATTRIBUTES)
         root = nx.topological_sort(g)[0]
-        logic = g.node[root]['obj'].logic
-        for _ in filter(lambda n: g.node[n]['obj'].type.lower() == 'group', g):
+        logic = get_node_object(g, root).logic
+        for _ in filter(lambda n: get_node_object(g, n).is_type('group'), g):
             # TODO: Handle grouped elements by using failures_graph
-            _logger.debug('Block: %s, contains GROUPED components', self.name)
+            _logger.debug('Component: %s, contains GROUPED components',
+                          self.name)
+            # For each leaf node, create its (temporary) diagram
+            for leaf in filter(lambda x: g.out_degree(x) == 0, g.nodes_iter()):
+                look_for_hint(leaf)
+                create_basic_diagram(leaf)
+            # Start merging and raising nodes
             while True:
-                gcopy = g.copy()
-                # Find the deepest Group component
-                parent, node, depth = find_deepest_group(root)
-                if node is None:
-                    _logger.error(
-                        '%s: Expected to find a GROUP component, None found',
-                        self.name)
-                    return  # TODO: Raise exception instead of returning
-                if depth == 1:
+                if g.number_of_nodes() == 2:
+                    # Only the root node is left, we are done
                     break
-                for u, v in nx.dfs_edges(gcopy, node):
-                    g.remove_edge(u, v)
-                    g.add_edge(parent, v)
-                g.remove_node(node)
-            # At this point, the specification graph is "normalized",
-            # i.e. all Group components, apart from the root one have
-            # been eliminated.
-            # TODO: We can now begin building the internal graph.
+                dg, dgd, dgp = find_deepest_group(root)
+                merge_group_diagrams(dg)
+                # TODO: Raise resulting node upwards
+                # break
             break
         else:
-            if logic.name.lower() == 'and':
+            if logic == 'and':
                 for b1, b2 in window(enumerate_blocks(root)):
                     if b2 is None:
-                        ig.add_node(id(b1), obj=b1)
+                        ig.add_node(b1.id, obj=b1)
                     else:
-                        ig.add_node(id(b1), obj=b1)
-                        ig.add_node(id(b2), obj=b2)
-                        ig.add_edge(id(b1), id(b2))
-            elif logic.name.lower() in ('or', 'active'):
-                vote_val = None if logic.name.lower() == 'or' \
-                    else logic.voting
+                        ig.add_node(b1.id, obj=b1)
+                        ig.add_node(b2.id, obj=b2)
+                        ig.add_edge(b1.id, b2.id)
+            elif logic in ('or', 'active'):
+                vote_val = None if logic == 'or' else logic.voting
                 node_in = _RbdNode('{}.{}'.format(self.name, 'In'), None)
                 node_out = _RbdNode('{}.{}'.format(self.name, 'Out'), vote_val)
-                ig.add_node(id(node_in), obj=node_in)
-                ig.add_node(id(node_out), obj=node_out)
+                ig.add_node(node_in.id, obj=node_in)
+                ig.add_node(node_out.id, obj=node_out)
                 for b in enumerate_blocks(root):
-                    ig.add_node(id(b), obj=b)
-                    ig.add_edge(id(node_in), id(b))
-                    ig.add_edge(id(b), id(node_out))
+                    ig.add_node(b.id, obj=b)
+                    ig.add_edge(node_in.id, b.id)
+                    ig.add_edge(b.id, node_out.id)
 
         self._block_graph = ig
-        P = nx.drawing.nx_pydot.to_pydot(ig)
-        P.write_png('/home/ergys/tmp/%s.png' % self.name)
+        # p = nx.drawing.nx_pydot.to_pydot(ig)
+        # p.write_png('/home/ergys/tmp/%s.png' % self.name)
 
     @property
     def name(self):
@@ -174,6 +250,7 @@ class _RbdNode(object):
     def vote_value(self):
         return self._vote_value
 
+
 ###############################################################################
 
 
@@ -209,10 +286,10 @@ class Rbd(object):
                         break
                 else:
                     subgraph.add_edge(src, dst)
-                if g.node[dst]['obj'].type.lower() == 'compound':
+                if get_node_object(g, dst).is_type('compound'):
                     fringe.append(dst)
-            for n in filter(lambda n: n in g, subgraph):
-                subgraph.node[n].update(obj=g.node[n]['obj'])
+            for n in filter(lambda x: x in g, subgraph):
+                subgraph.node[n].update(obj=get_node_object(g, n))
             return subgraph
 
         def extract_failures_subgraph(node):
@@ -224,15 +301,23 @@ class Rbd(object):
         for _, n in nx.bfs_edges(g, source=nx.topological_sort(g)[0]):
             # Traverse the components graph in BFS order.
             # For each compound element, create the internal graph.
-            ndo = g.node[n]['obj']  # Associated node object
-            if ndo.type.lower() == 'compound':
+            ndo = get_node_object(g, n)
+            if ndo.is_type('compound'):
                 _logger.debug('Constructing internal graph for: %s', ndo.name)
                 block = _CompoundBlock(ndo.name)
                 node_subgraph = extract_subgraph(n)
                 failures_subgraph = extract_failures_subgraph(n)
                 block.generate_internal_graph(node_subgraph, failures_subgraph)
+                # export_graph_to_png(node_subgraph, ndo.name)
                 self._compound_block_index[block.name] = block
 
     def serialize(self, emitter):
         """Serializes the RBD by making use of the given emitter object."""
         # TODO
+
+
+    # DEBUG
+def export_graph_to_png(g, name):
+    p = nx.drawing.nx_pydot.to_pydot(g)
+    t = pydotplus.graph_from_dot_data(p.create_dot())
+    t.write_png('/home/ergys/tmp/{}.png'.format(name))
