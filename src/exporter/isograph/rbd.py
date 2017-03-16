@@ -126,7 +126,7 @@ class _CompoundBlock(object):
                 _logger.error('* element has no logic, but multiple children')
                 raise ExporterError('A Group element without logic ' +
                                     'cannot have multiple children')
-            o.type = 'Compound'
+            o.type = 'Processed'
             if g.out_degree(group_node) == 1:
                 # When the group contains only one child, avoid doing all
                 # the extra work. Just take the child's diagram and remove it.
@@ -189,6 +189,12 @@ class _CompoundBlock(object):
             g.remove_nodes_from(nodes_to_merge)
 
         def get_diagram_instance(diagram, instance):
+            """
+            Returns an "instance" of the given diagram.
+            In simple words, re-labels each node of the given diagram, so that
+            they correspond to a particular instance of that diagram.
+            A copy is returned, thus the given diagram remains untouched.
+            """
             d = diagram.copy()  # Copy the current diagram
             for name, nodelist in groupby(
                     d.nodes_iter(), key=lambda x: x.name):
@@ -202,12 +208,43 @@ class _CompoundBlock(object):
                         nodelist[i].instance = instance * length + current
             return d
 
+        def apply_failure_logic(group):
+            """
+            Shall only be called after the grouped components have been merged.
+            """
+            d = g.node[group].get('diagram')
+
+            def has_nodes(name_id):
+                for n in d.nodes_iter():
+                    if n.name == name_id:
+                        return True
+                return False
+
+            r = next(filter(lambda x: f.in_degree(x) == 0, f.nodes_iter()))
+            for u, v in nx.dfs_edges(f, r):  # Start a DFS in failures graph
+                vo = get_node_object(f, v)  # Get the target object
+                if vo.is_type('FailureEvent'):
+                    uo = get_node_object(f, u)  # Get the source object
+                    if has_nodes(vo.name):
+                        _logger.debug('Will apply logic: %s, to: %s', uo.logic,
+                                      vo.name)
+                        if uo.logic in ('or', 'active'):
+                            vote_val = None \
+                                if uo.logic == 'or' else uo.logic.voting
+                            node_out = _RbdNode('{}.Out'.format(self.name),
+                                                vote_val)
+                            d.add_node(node_out)
+                            for n in filter(lambda x: x.name == vo.name,
+                                            d.nodes_iter()):
+                                d.add_edge(n, node_out)
+                        elif uo.logic == 'and':
+                            pass
+
         # Graph representing the block's internal structure
-        ig = nx.DiGraph(**GRAPH_ATTRIBUTES)
         root = next(filter(lambda x: g.in_degree(x) == 0, g.nodes_iter()))
         logic = get_node_object(g, root).logic
         for _ in filter(lambda n: get_node_object(g, n).is_type('group'), g):
-            # TODO: Handle grouped elements by using failures_graph
+            # Handle grouped elements by using failures_graph
             _logger.debug('Component: %s, contains GROUPED components',
                           self.name)
             # For each leaf node, create its (temporary) diagram
@@ -221,12 +258,13 @@ class _CompoundBlock(object):
                     break
                 dg, dgd, dgp = find_deepest_group(root)
                 merge_group_diagrams(dg)
-                # TODO: Raise resulting node upwards
-                # break
             dg = next(g.neighbors_iter(root))
-            export_graph_to_png(g.node[dg].get('diagram'), 'TEST')
-            break
+            apply_failure_logic(dg)
+            ig = g.node[dg].get('diagram')
+            # Needed to avoid executing the above more than once
+            break  # and in order to not fall to the else clause below
         else:
+            ig = nx.DiGraph(**GRAPH_ATTRIBUTES)
             if logic == 'and':
                 for b1, b2 in window(enumerate_blocks(root)):
                     if b2 is None:
@@ -247,8 +285,10 @@ class _CompoundBlock(object):
                     ig.add_edge(b.id, node_out.id)
 
         self._block_graph = ig
-        # p = nx.drawing.nx_pydot.to_pydot(ig)
-        # p.write_png('/home/ergys/tmp/%s.png' % self.name)
+        import os
+        p = nx.drawing.nx_pydot.to_pydot(ig)
+        output_path = os.path.join(os.path.expanduser('~'), 'tmp/{}.png')
+        p.write_png(output_path.format(self.name))
 
     @property
     def name(self):
