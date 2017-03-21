@@ -10,7 +10,7 @@ import networkx as nx
 import pydotplus
 
 from enum import Enum
-from collections import OrderedDict
+from collections import OrderedDict, deque
 from itertools import groupby
 from sliding_window import window
 from errors import ExporterError
@@ -19,8 +19,7 @@ _logger = logging.getLogger(__name__)
 
 # RBD elements ################################################################
 
-GRAPH_ATTRIBUTES = dict(
-    graph=dict(rankdir='LR'), )
+GRAPH_ATTRIBUTES = dict(graph=dict(rankdir='LR'), )
 
 
 def get_node_object(g, n):
@@ -58,6 +57,7 @@ class _CompoundBlock(object):
     def __init__(self, name):
         self._name = name
         self._block_graph = None
+        self._dot_graph = None
 
     def generate_internal_graph(self, spec_graph, failures_graph):
         g = spec_graph
@@ -90,20 +90,31 @@ class _CompoundBlock(object):
             diagram = nx.DiGraph(**GRAPH_ATTRIBUTES)
             if o.instances > 1:
                 if logic is None:
-                    diagram.add_nodes_from(
-                        (_RbdBlock(o.name, type='Rbd block', instance=i)
-                         for i in range(1, o.instances + 1)))
+                    for i in range(1, o.instances + 1):
+                        b = _RbdBlock(o.name, type='Rbd block', instance=i)
+                        diagram.add_node(b.id, obj=b)
+                    # diagram.add_nodes_from(
+                    #     (_RbdBlock(o.name, type='Rbd block', instance=i)
+                    #      for i in range(1, o.instances + 1)))
                 elif logic == 'and':
-                    diagram.add_edges_from((
-                        (_RbdBlock(o.name, type='Rbd block', instance=i),
-                         _RbdBlock(o.name, type='Rbd block', instance=j))
-                        for i, j in window(range(1, o.instances + 1), 2)))
+                    for i, j in window(range(1, o.instances + 1), 2):
+                        b1 = _RbdBlock(o.name, type='Rbd block', instance=i)
+                        b2 = _RbdBlock(o.name, type='Rbd block', instance=j)
+                        diagram.add_node(b1.id, obj=b1)
+                        diagram.add_node(b2.id, obj=b2)
+                        diagram.add_edge(b1.id, b2.id)
+                    # diagram.add_edges_from((
+                    #     (_RbdBlock(o.name, type='Rbd block', instance=i),
+                    #      _RbdBlock(o.name, type='Rbd block', instance=j))
+                    #     for i, j in window(range(1, o.instances + 1), 2)))
                 elif logic in ('or', 'active'):
                     pass
                 else:  # Invalid logic
                     _logger.error('Leaf node %s has an invalid logic', o.name)
             else:
-                diagram.add_node(_RbdBlock(o.name, type='Rbd block'))
+                b = _RbdBlock(o.name, type='Rbd block')
+                diagram.add_node(b.id, obj=b)
+                # diagram.add_node(_RbdBlock(o.name, type='Rbd block'))
             g.node[leaf].update(diagram=diagram)
 
         def find_deepest_group(root):
@@ -171,6 +182,8 @@ class _CompoundBlock(object):
                             n2d = g.node[n2].get('diagram')
                             d1 = get_diagram_instance(n1d, i)
                             d2 = get_diagram_instance(n2d, i)
+                            diagram.add_nodes_from(d1.nodes(data=True))
+                            diagram.add_nodes_from(d2.nodes(data=True))
                             diagram.add_edges_from(d1.edges())
                             diagram.add_edges_from(d2.edges())
                             s1, e1 = find_edges(d1)
@@ -197,15 +210,23 @@ class _CompoundBlock(object):
             """
             d = diagram.copy()  # Copy the current diagram
             for name, nodelist in groupby(
-                    d.nodes_iter(), key=lambda x: x.name):
+                    d.nodes_iter(), key=lambda x: get_node_object(d, x).name):
                 nodelist = list(nodelist)
                 length = len(nodelist)
                 if length == 1:
-                    nodelist[0].instance = instance + 1
+                    o = get_node_object(d, nodelist[0])
+                    old_id = o.id
+                    o.instance = instance + 1
+                    new_id = o.id
+                    nx.relabel_nodes(d, {old_id: new_id}, copy=False)
                 else:
                     for i in range(length):
-                        current = nodelist[i].instance
-                        nodelist[i].instance = instance * length + current
+                        o = get_node_object(d, nodelist[i])
+                        old_id = o.id
+                        current = o.instance
+                        o.instance = instance * length + current
+                        new_id = o.id
+                        nx.relabel_nodes(d, {old_id: new_id}, copy=False)
             return d
 
         def apply_failure_logic(group):
@@ -216,7 +237,7 @@ class _CompoundBlock(object):
 
             def has_nodes(name_id):
                 for n in d.nodes_iter():
-                    if n.name == name_id:
+                    if get_node_object(d, n).name == name_id:
                         return True
                 return False
 
@@ -226,17 +247,19 @@ class _CompoundBlock(object):
                 if vo.is_type('FailureEvent'):
                     uo = get_node_object(f, u)  # Get the source object
                     if has_nodes(vo.name):
-                        _logger.debug('Will apply logic: %s, to: %s', uo.logic,
-                                      vo.name)
+                        # d contains nodes corresponding to the failure event
+                        _logger.debug('Will apply logic: %s, to: %s.%s',
+                                      uo.logic, self.name, vo.name)
                         if uo.logic in ('or', 'active'):
                             vote_val = None \
                                 if uo.logic == 'or' else uo.logic.voting
                             node_out = _RbdNode('{}.Out'.format(self.name),
-                                                vote_val)
-                            d.add_node(node_out)
-                            for n in filter(lambda x: x.name == vo.name,
-                                            d.nodes_iter()):
-                                d.add_edge(n, node_out)
+                                                int(vote_val))
+                            d.add_node(node_out.id, obj=node_out)
+                            for n in filter(
+                                    lambda x: get_node_object(d, x).name == vo.name,
+                                    d.nodes_iter()):
+                                d.add_edge(n, node_out.id)
                         elif uo.logic == 'and':
                             for n1, n2 in window(
                                     filter(lambda x: x.name == vo.name,
@@ -280,7 +303,8 @@ class _CompoundBlock(object):
             elif logic in ('or', 'active'):
                 vote_val = None if logic == 'or' else logic.voting
                 node_in = _RbdNode('{}.{}'.format(self.name, 'In'), None)
-                node_out = _RbdNode('{}.{}'.format(self.name, 'Out'), vote_val)
+                node_out = _RbdNode('{}.{}'.format(self.name, 'Out'),
+                                    int(vote_val))
                 ig.add_node(node_in.id, obj=node_in)
                 ig.add_node(node_out.id, obj=node_out)
                 for b in enumerate_blocks(root):
@@ -289,10 +313,12 @@ class _CompoundBlock(object):
                     ig.add_edge(b.id, node_out.id)
 
         self._block_graph = ig
-        import os
-        p = nx.drawing.nx_pydot.to_pydot(ig)
-        output_path = os.path.join(os.path.expanduser('~'), 'tmp/{}.png')
-        p.write_png(output_path.format(self.name))
+        temp = nx.drawing.nx_pydot.to_pydot(ig)
+        self._dot_graph = pydotplus.graph_from_dot_data(temp.create_dot())
+        # import os
+        # p = nx.drawing.nx_pydot.to_pydot(ig)
+        # output_path = os.path.join(os.path.expanduser('~'), 'tmp', '{}.png')
+        # p.write_png(output_path.format(self.name))
 
     @property
     def name(self):
@@ -301,6 +327,10 @@ class _CompoundBlock(object):
     @property
     def internal_graph(self):
         return self._block_graph
+
+    @property
+    def internal_dot_graph(self):
+        return self._dot_graph
 
 
 class _RbdBlock(object):
@@ -430,9 +460,107 @@ class Rbd(object):
     def serialize(self, emitter):
         """Serializes the RBD by making use of the given emitter object."""
         # TODO
+        name, element = next(iter(self._compound_block_index.items()))
+        blocks_stack = deque([(element, deque())])
+        while blocks_stack:
+            cblock, cpath = blocks_stack.pop()
+
+            # import os
+            # output_path = os.path.join(os.path.expanduser('~'), 'tmp', '{}.png')
+            # dot_graph.write_png(output_path.format(cblock.name))
+
+            # For each node (block) N in the current block, serialise N.
+            # If it is a compound block, also add it to the stack.
+            for u in nx.topological_sort(cblock.internal_graph):
+                uo = cblock.internal_graph.node[u].get('obj')
+                if uo.name in self._compound_block_index:
+                    npath = cpath
+                    if uo.instance is not None:
+                        npath = npath.copy()
+                        npath.append(uo.instance)
+                    nblock = self._compound_block_index[uo.name]
+                    blocks_stack.append((nblock, npath))
+                self._serialize_element(uo, cblock, cpath,
+                                        cblock.internal_dot_graph, emitter)
+            # For each edge (u, v) in the current block,
+            # serialise (u, v) as an RbdConnection.
+            for u, v in nx.edges_iter(cblock.internal_graph):
+                uo = cblock.internal_graph.node[u].get('obj')
+                vo = cblock.internal_graph.node[v].get('obj')
+                self._serialize_connection(cblock, cpath, uo, vo, emitter)
+        emitter.commit()
+
+    @staticmethod
+    def _serialize_element(element, parent, cpath, dot_graph, emitter):
+        """Serialises a single element."""
+
+        def make_path(p):
+            return '.'.join([str(t) for t in p]) + '.' \
+                if len(p) > 1 else str(p[0]) + '.' if len(p) == 1 else ''
+
+        def split_parent_path(p):
+            tokens = list(p)
+            if len(tokens) > 0:
+                prefix = '.'.join([str(x) for x in tokens[:-1]])
+                if prefix:
+                    prefix = prefix + '.'
+                suffix = '.'.join([str(x) for x in tokens[-1:]])
+                if suffix:
+                    suffix = '.' + suffix
+                return prefix, suffix
+            else:
+                return '', ''
+
+        s = element.id if '.' not in element.id else '"{}"'.format(element.id)
+        coords = dot_graph.get_node(s)[0].get_pos().strip('"').split(',')
+        xpos, ypos = [int(float(x)) for x in coords]
+        prefix = Rbd._make_path(cpath)
+        parent_id = Rbd._make_parent_id(parent, cpath)
+        if type(element) == _RbdBlock:
+            emitter.add_block(
+                Id='{}{}'.format(prefix, element.id),
+                Page=parent_id,
+                XPosition=xpos * 1.5,
+                YPosition=ypos * 1.5)
+        else:
+            emitter.add_node(
+                Id='{}{}'.format(prefix, element.id),
+                Page=parent_id,
+                Vote=element.vote_value,
+                XPosition=xpos * 1.5,
+                YPosition=ypos * 1.5)
+
+    @staticmethod
+    def _serialize_connection(parent, cpath, src, dst, emitter):
+        prefix = Rbd._make_path(cpath)
+        parent_id = Rbd._make_parent_id(parent, cpath)
+        src_id = '{}{}'.format(prefix, src.id)
+        dst_id = '{}{}'.format(prefix, dst.id)
+        identifier = '{}{}-{}'.format(prefix, src.id, dst.id)
+        emitter.add_connection(identifier, parent_id, src_id, src.type, dst_id,
+                               dst.type)
+
+    @staticmethod
+    def _make_path(p):
+        return '.'.join([str(t) for t in p]) + '.' \
+            if len(p) > 1 else str(p[0]) + '.' if len(p) == 1 else ''
+
+    @staticmethod
+    def _make_parent_id(parent, cpath):
+        tokens = list(cpath)
+        if len(tokens) > 0:
+            prefix = '.'.join([str(x) for x in tokens[:-1]])
+            if prefix:
+                prefix = prefix + '.'
+            suffix = '.'.join([str(x) for x in tokens[-1:]])
+            if suffix:
+                suffix = '.' + suffix
+        else:
+            prefix, suffix = '', ''
+        return '{}{}{}'.format(prefix, parent.name, suffix)
 
 
-    # DEBUG
+# DEBUG
 def export_graph_to_png(g, name):
     p = nx.drawing.nx_pydot.to_pydot(g)
     t = pydotplus.graph_from_dot_data(p.create_dot())

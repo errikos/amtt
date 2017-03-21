@@ -3,6 +3,7 @@ Contains the Isograph flat elements, to be written to the output excel file.
 """
 
 import logging
+from collections import OrderedDict
 
 _logger = logging.getLogger(__name__)
 
@@ -65,3 +66,13 @@ class RbdConnectionRow(object):
 
 
 ###############################################################################
+
+SCHEMA = OrderedDict((
+    ('RbdBlocks', RbdBlockRow.schema),
+    ('RbdRepeatBlocks', RbdRepeatBlockRow.schema),
+    ('RbdNodes', RbdNodeRow.schema),
+    ('RbdConnections', RbdConnectionRow.schema), ))
+
+__all__ = [
+    'RbdBlockRow', 'RbdRepeatBlockRow', 'RbdNodeRow', 'RbdConnectionRow'
+]

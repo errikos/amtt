@@ -13,8 +13,7 @@ from .entities import SystemElement, ElementLogic
 
 _logger = logging.getLogger(__name__)
 
-IR_GRAPH_ATTRIBUTES = dict(
-    node=dict(shape='box'), )
+IR_GRAPH_ATTRIBUTES = dict(node=dict(shape='box'), )
 
 
 class IRContainer(object):
