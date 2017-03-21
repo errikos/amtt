@@ -131,8 +131,8 @@ def main():
     # create the Translator and start the process
     translator = Translator(loader, args.target, args.output_basedir)
     translator.parse_model()
+    detect_graphviz()
     if args.export_png:
-        detect_graphviz()
         translator.export_png()
         sys.exit(0)
     translator.translate()
