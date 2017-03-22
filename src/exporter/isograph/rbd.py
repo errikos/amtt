@@ -457,33 +457,36 @@ class Rbd(object):
         """Serializes the RBD by making use of the given emitter object."""
         # TODO
         name, element = next(iter(self._compound_block_index.items()))
-        blocks_stack = deque([(element, deque())])
+        blocks_stack = deque([(element, deque(), None)])
         while blocks_stack:
-            cblock, cpath = blocks_stack.pop()
+            cblock, cpath, cinstance = blocks_stack.pop()
             # For each node (block) N in the current block, serialise N.
             # If it is a compound block, also add it to the stack.
             for u in nx.topological_sort(cblock.internal_graph):
                 uo = cblock.internal_graph.node[u].get('obj')
+                npath = cpath
+                if cinstance is not None:
+                    npath = npath.copy()
+                    npath.append(cinstance)
                 if uo.name in self._compound_block_index:
-                    npath = cpath
-                    if uo.instance is not None:
-                        npath = npath.copy()
-                        npath.append(uo.instance)
                     nblock = self._compound_block_index[uo.name]
-                    blocks_stack.append((nblock, npath))
-                self._serialize_element(uo, cblock, cpath,
+                    blocks_stack.append((nblock, npath, uo.instance))
+                self._serialize_element(uo, cblock, cpath, cinstance,
                                         cblock.internal_dot_graph, emitter)
             # For each edge (u, v) in the current block,
             # serialise (u, v) as an RbdConnection.
             for u, v in nx.edges_iter(cblock.internal_graph):
                 uo = cblock.internal_graph.node[u].get('obj')
                 vo = cblock.internal_graph.node[v].get('obj')
-                self._serialize_connection(cblock, cpath, uo, vo, emitter)
+                self._serialize_connection(cblock, cpath, cinstance, uo, vo,
+                                           emitter)
         emitter.commit()
 
     @staticmethod
-    def _serialize_element(element, parent, cpath, dot_graph, emitter):
+    def _serialize_element(element, parent, ppath, pinstance, dot_graph,
+                           emitter):
         """Serialises a single element."""
+
         def quote(element_id):
             chars = ['.', '-']
             if not [x for x in chars if x in element_id]:
@@ -494,8 +497,14 @@ class Rbd(object):
         s = quote(element.id)
         coords = dot_graph.get_node(s)[0].get_pos().strip('"').split(',')
         xpos, ypos = [int(float(x)) for x in coords]
-        prefix = Rbd._make_path(cpath)
-        parent_id = Rbd._make_parent_id(parent, cpath)
+        prefix = Rbd._make_path(ppath)
+        # parent_id = Rbd._make_parent_id(parent, ppath)
+        inst_str = '.{}'.format(pinstance) if pinstance is not None else ''
+        parent_id = '{}{}{}'.format(prefix, parent.name, inst_str)
+        if prefix and pinstance is not None:
+            prefix = '{}{}.'.format(prefix, pinstance)
+        elif pinstance is not None:
+            prefix = '{}.'.format(pinstance)
         if type(element) == _RbdBlock:
             emitter.add_block(
                 Id='{}{}'.format(prefix, element.id),
@@ -511,9 +520,15 @@ class Rbd(object):
                 YPosition=ypos * 2)
 
     @staticmethod
-    def _serialize_connection(parent, cpath, src, dst, emitter):
-        prefix = Rbd._make_path(cpath)
-        parent_id = Rbd._make_parent_id(parent, cpath)
+    def _serialize_connection(parent, ppath, pinstance, src, dst, emitter):
+        prefix = Rbd._make_path(ppath)
+        # parent_id = Rbd._make_parent_id(parent, ppath)
+        inst_str = '.{}'.format(pinstance) if pinstance is not None else ''
+        parent_id = '{}{}{}'.format(prefix, parent.name, inst_str)
+        if prefix and pinstance is not None:
+            prefix = '{}{}.'.format(prefix, pinstance)
+        elif pinstance is not None:
+            prefix = '{}.'.format(pinstance)
         src_id = '{}{}'.format(prefix, src.id)
         dst_id = '{}{}'.format(prefix, dst.id)
         identifier = '{}{}-{}'.format(prefix, src.id, dst.id)
