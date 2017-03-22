@@ -487,14 +487,11 @@ class Rbd(object):
                            emitter):
         """Serialises a single element."""
 
-        def quote(element_id):
-            chars = ['.', '-']
-            if not [x for x in chars if x in element_id]:
-                return element_id
-            else:
-                return '"{}"'.format(element.id)
+        def quote_if_necessary(element_id):
+            return element_id if str.isalnum(element_id) \
+                else '"{}"'.format(element.id)
 
-        s = quote(element.id)
+        s = quote_if_necessary(element.id)
         coords = dot_graph.get_node(s)[0].get_pos().strip('"').split(',')
         xpos, ypos = [int(float(x)) for x in coords]
         prefix = Rbd._make_path(ppath)
