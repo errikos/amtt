@@ -498,7 +498,6 @@ class Rbd(object):
         coords = dot_graph.get_node(s)[0].get_pos().strip('"').split(',')
         xpos, ypos = [int(float(x)) for x in coords]
         prefix = Rbd._make_path(ppath)
-        # parent_id = Rbd._make_parent_id(parent, ppath)
         inst_str = '.{}'.format(pinstance) if pinstance is not None else ''
         parent_id = '{}{}{}'.format(prefix, parent.name, inst_str)
         if prefix and pinstance is not None:
@@ -522,7 +521,6 @@ class Rbd(object):
     @staticmethod
     def _serialize_connection(parent, ppath, pinstance, src, dst, emitter):
         prefix = Rbd._make_path(ppath)
-        # parent_id = Rbd._make_parent_id(parent, ppath)
         inst_str = '.{}'.format(pinstance) if pinstance is not None else ''
         parent_id = '{}{}{}'.format(prefix, parent.name, inst_str)
         if prefix and pinstance is not None:
@@ -539,20 +537,6 @@ class Rbd(object):
     def _make_path(p):
         return '.'.join([str(t) for t in p]) + '.' \
             if len(p) > 1 else str(p[0]) + '.' if len(p) == 1 else ''
-
-    @staticmethod
-    def _make_parent_id(parent, cpath):
-        tokens = list(cpath)
-        if len(tokens) > 0:
-            prefix = '.'.join([str(x) for x in tokens[:-1]])
-            if prefix:
-                prefix = prefix + '.'
-            suffix = '.'.join([str(x) for x in tokens[-1:]])
-            if suffix:
-                suffix = '.' + suffix
-        else:
-            prefix, suffix = '', ''
-        return '{}{}{}'.format(prefix, parent.name, suffix)
 
 
 # DEBUG
