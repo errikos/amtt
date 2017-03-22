@@ -9,7 +9,7 @@ import pyexcel
 from . import Loader
 from errors import LoaderError
 
-_logger = logging.getLogger('loader.excel')
+_logger = logging.getLogger(__name__)
 
 
 def handler(args):
@@ -28,18 +28,16 @@ class ExcelLoader(Loader):
     def __init__(self, file_path):
         self._file_path = file_path
 
-    def load(self, translator):
+    def load(self, container):
         # Sheet names are listed here...
         sheet_names = [
             'Components',
             'Logic',
-            'Properties',
         ]
         # ... and the flat handler methods here.
         method_names = [
             'add_component',
             'add_logic',
-            'add_property',
         ]
         # Attention: sheet_names and method_names above are expected to have
         #            a 1-1 correspondence
@@ -49,9 +47,9 @@ class ExcelLoader(Loader):
                 sheet_name=sheet_name,
                 name_columns_by_row=0) for sheet_name in sheet_names
         ]
-        [[
-            getattr(translator.flats, method)(
-                **{key.lower(): val
-                   for key, val in zip(sheet.colnames, row)})
-            for row in sheet.rows()
+        [[  # Call the appropriate method for each sheet and store rows.
+            getattr(container, method)(**{
+                key.lower().replace(' ', '_').strip(): Loader.strip(val)
+                for key, val in zip(sheet.colnames, row)
+            }) for row in sheet.rows()
         ] for sheet, method in zip(sheets, method_names)]

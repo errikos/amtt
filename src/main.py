@@ -2,12 +2,39 @@
 """
 Main entry-point
 """
+import os
 import sys
 import argparse
 import logging
 
+from coloredtty import ColorizingStreamHandler
 from translator import Translator
 from loader import *
+
+
+def detect_graphviz():
+    """Effective for Windows systems only.
+
+    Detects the graphviz bin directory and adds it to PATH,
+    so that networkx can execute the graphviz binaries (via pydotplus).
+    """
+    if sys.platform != 'win32':
+        return
+    program_files_64 = os.path.join('C:\\', 'Program Files (x86)')
+    program_files_32 = os.path.join('C:\\', 'Program Files')
+    program_files_dir = program_files_64 if os.path.isdir(
+        program_files_64) else program_files_32
+    candidates = filter(lambda dir: dir.startswith('Graphviz'),
+                        os.listdir(program_files_dir))
+    graphviz_path = None
+    for dir in candidates:
+        graphviz_path = os.path.join(program_files_dir, dir, 'bin')
+        if os.path.isdir(graphviz_path):
+            break
+    if not graphviz_path:
+        raise OSError('Graphviz was not found. ' +
+                      'Please install Graphviz and try again.')
+    os.environ['PATH'] += ';' + graphviz_path
 
 
 def parse_arguments():
@@ -17,7 +44,6 @@ def parse_arguments():
     parser.add_argument(
         '-t',
         type=str,
-        required=True,
         choices=['isograph'],
         metavar='TARGET',
         dest='target',
@@ -25,6 +51,7 @@ def parse_arguments():
     parser.add_argument(
         '-o',
         type=str,
+        required=True,
         metavar='OUTPUT_BASEDIR',
         dest='output_basedir',
         help='The output base directory')
@@ -34,6 +61,13 @@ def parse_arguments():
         dest='verbosity',
         default=0,
         help='Increase verbosity')
+    parser.add_argument(
+        '-x',
+        '--export-graphs',
+        action='store_true',
+        dest='export_png',
+        help='Export input model graphs as PNG images and exit')
+
     subparsers = parser.add_subparsers(title='Supported input types')
 
     # sub-parser for CSV data source
@@ -67,6 +101,13 @@ def parse_arguments():
     if 'func' not in args:
         parser.print_help()
         sys.exit(1)
+    if not args.export_png and args.target is None:
+        # TARGET is not required when the -x option is specified,
+        # however it is required in all other cases.
+        print(
+            'Missing required argument: TARGET\nRe-run with -h for help.',
+            file=sys.stderr)
+        sys.exit(1)
     return args
 
 
@@ -82,12 +123,18 @@ def main():
     logging.basicConfig(
         format='%(asctime)s - %(name)s:%(levelname)8s: %(message)s',
         datefmt='%H:%M:%S',
-        level=level)
+        level=level,
+        handlers=[ColorizingStreamHandler()])
     # call the appropriate handler for the input type
     # and get the appropriate loader
     loader = args.func(args)
     # create the Translator and start the process
     translator = Translator(loader, args.target, args.output_basedir)
+    translator.parse_model()
+    detect_graphviz()
+    if args.export_png:
+        translator.export_png()
+        sys.exit(0)
     translator.translate()
 
 

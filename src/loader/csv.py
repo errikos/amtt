@@ -7,7 +7,7 @@ import logging
 import csv
 from . import Loader
 
-_logger = logging.getLogger('loader.csv')
+_logger = logging.getLogger(__name__)
 
 
 def handler(args):
@@ -22,18 +22,16 @@ class CsvLoader(Loader):
     def __init__(self, dir_in):
         self.dir_in = dir_in
 
-    def load(self, translator):
+    def load(self, container):
         # csv file names are listed here...
         file_names = [
             'components.csv',
             'logic.csv',
-            'properties.csv',
         ]
         # ... and the flat handler methods here.
         method_names = [
             'add_component',
             'add_logic',
-            'add_property',
         ]
         # Attention: file_names and method_names above are expected to have
         #            a 1-1 correspondence
@@ -42,10 +40,8 @@ class CsvLoader(Loader):
                 reader = csv.DictReader(f)
                 # convert csv field (column) names to lowercase
                 reader.fieldnames = [
-                    field.lower() for field in reader.fieldnames
+                    field.lower().replace(' ', '_')
+                    for field in reader.fieldnames
                 ]
                 # add the flat components to the translator structures
-                [
-                    getattr(translator.flats, method_name)(**row)
-                    for row in reader
-                ]
+                [getattr(container, method_name)(**row) for row in reader]

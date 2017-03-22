@@ -42,6 +42,10 @@ class Loader(object):
     instantiating objects or putting data in the Keep.
     """
 
+    @staticmethod
+    def strip(val):
+        return val.strip() if type(val) == str else val
+
 
 # Contains all available loaders.
 __all__ = ['csv', 'excel']

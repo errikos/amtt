@@ -2,9 +2,14 @@
 The translator module.
 """
 
-from .flat import FlatContainer
+import logging
+
 from exporter.isograph import IsographExporter
 from errors import ExporterError
+from .rows import RowsContainer
+from .ir import IRContainer
+
+_logger = logging.getLogger(__name__)
 
 
 class Translator(object):
@@ -23,25 +28,31 @@ class Translator(object):
         self._loader = loader
         self._target = target
         self._output_basedir = output_basedir
-        self._flat_container = FlatContainer()
+        # Initialize the IR Container
+        self._ir_container = IRContainer()
 
     def parse_model(self):
-        # Here we construct the in-memory model from the flat objects
-        pass
+        """
+        Constructs the in-memory model. Does the following:
+          - Reads the model into the flat container.
+          - Creates the in-memory graphs that represent the input model.
+        """
+        # Read the model into the flat container
+        rows_container = RowsContainer()
+        self._loader.load(rows_container)  # Obtain rows from the loader
+        # Create IR structures
+        self._ir_container.load_from_rows(rows_container)
+        del rows_container
+
+    def export_png(self):
+        """Exports the in-memory graphs to PNG image files"""
+        self._ir_container.export_graphs(self._output_basedir)
 
     def translate(self):
-        self._loader.load(self)
         # Get the exporter object
         exporter = ExporterFactory.get_exporter(self)
         # Export the model
         exporter.export()
-
-    @property
-    def flats(self):
-        """
-        Property giving access to the flat objects container.
-        """
-        return self._flat_container
 
     @property
     def target(self):
@@ -50,6 +61,10 @@ class Translator(object):
     @property
     def output_basedir(self):
         return self._output_basedir
+
+    @property
+    def ir_container(self):
+        return self._ir_container
 
 
 class ExporterFactory(object):

@@ -3,7 +3,7 @@
 [![Documentation Status](https://readthedocs.org/projects/amtt/badge/?version=latest)](http://amtt.readthedocs.io/en/latest/?badge=latest)
 
 
-###Notes
+### Notes
 This software was developed in CERN (the European Organization for Nuclear
 Research) as part of my Technical Student spell.
 
