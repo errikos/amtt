@@ -8,6 +8,7 @@ Therefore, the RBD is the core component of an Isograph model.
 import logging
 import networkx as nx
 import pydotplus
+import itertools
 
 from enum import Enum
 from collections import OrderedDict, deque
@@ -19,7 +20,8 @@ _logger = logging.getLogger(__name__)
 
 # RBD elements ################################################################
 
-GRAPH_ATTRIBUTES = dict(graph=dict(rankdir='LR'), )
+GRAPH_ATTRIBUTES = dict(
+    graph=dict(rankdir='LR'), )
 
 
 def get_node_object(g, n):
@@ -93,9 +95,6 @@ class _CompoundBlock(object):
                     for i in range(1, o.instances + 1):
                         b = _RbdBlock(o.name, type='Rbd block', instance=i)
                         diagram.add_node(b.id, obj=b)
-                    # diagram.add_nodes_from(
-                    #     (_RbdBlock(o.name, type='Rbd block', instance=i)
-                    #      for i in range(1, o.instances + 1)))
                 elif logic == 'and':
                     for i, j in window(range(1, o.instances + 1), 2):
                         b1 = _RbdBlock(o.name, type='Rbd block', instance=i)
@@ -103,10 +102,6 @@ class _CompoundBlock(object):
                         diagram.add_node(b1.id, obj=b1)
                         diagram.add_node(b2.id, obj=b2)
                         diagram.add_edge(b1.id, b2.id)
-                    # diagram.add_edges_from((
-                    #     (_RbdBlock(o.name, type='Rbd block', instance=i),
-                    #      _RbdBlock(o.name, type='Rbd block', instance=j))
-                    #     for i, j in window(range(1, o.instances + 1), 2)))
                 elif logic in ('or', 'active'):
                     pass
                 else:  # Invalid logic
@@ -114,7 +109,6 @@ class _CompoundBlock(object):
             else:
                 b = _RbdBlock(o.name, type='Rbd block')
                 diagram.add_node(b.id, obj=b)
-                # diagram.add_node(_RbdBlock(o.name, type='Rbd block'))
             g.node[leaf].update(diagram=diagram)
 
         def find_deepest_group(root):
@@ -292,7 +286,7 @@ class _CompoundBlock(object):
             break  # and in order to not fall to the else clause below
         else:
             ig = nx.DiGraph(**GRAPH_ATTRIBUTES)
-            if logic == 'and':
+            if logic in ('and', 'root'):
                 for b1, b2 in window(enumerate_blocks(root)):
                     if b2 is None:
                         ig.add_node(b1.id, obj=b1)
@@ -444,7 +438,9 @@ class Rbd(object):
                 if root == node:
                     return cc
 
-        for _, n in nx.bfs_edges(g, source=nx.topological_sort(g)[0]):
+        root = nx.topological_sort(g)[0]
+        for n in itertools.chain([root],
+                                 (x for _, x in nx.bfs_edges(g, source=root))):
             # Traverse the components graph in BFS order.
             # For each compound element, create the internal graph.
             ndo = get_node_object(g, n)
@@ -454,7 +450,7 @@ class Rbd(object):
                 node_subgraph = extract_subgraph(n)
                 failures_subgraph = extract_failures_subgraph(n)
                 block.generate_internal_graph(node_subgraph, failures_subgraph)
-                # export_graph_to_png(node_subgraph, ndo.name)
+                # export_graph_to_png(block.internal_graph, ndo.name)
                 self._compound_block_index[block.name] = block
 
     def serialize(self, emitter):
@@ -464,11 +460,6 @@ class Rbd(object):
         blocks_stack = deque([(element, deque())])
         while blocks_stack:
             cblock, cpath = blocks_stack.pop()
-
-            # import os
-            # output_path = os.path.join(os.path.expanduser('~'), 'tmp', '{}.png')
-            # dot_graph.write_png(output_path.format(cblock.name))
-
             # For each node (block) N in the current block, serialise N.
             # If it is a compound block, also add it to the stack.
             for u in nx.topological_sort(cblock.internal_graph):
@@ -493,25 +484,14 @@ class Rbd(object):
     @staticmethod
     def _serialize_element(element, parent, cpath, dot_graph, emitter):
         """Serialises a single element."""
-
-        def make_path(p):
-            return '.'.join([str(t) for t in p]) + '.' \
-                if len(p) > 1 else str(p[0]) + '.' if len(p) == 1 else ''
-
-        def split_parent_path(p):
-            tokens = list(p)
-            if len(tokens) > 0:
-                prefix = '.'.join([str(x) for x in tokens[:-1]])
-                if prefix:
-                    prefix = prefix + '.'
-                suffix = '.'.join([str(x) for x in tokens[-1:]])
-                if suffix:
-                    suffix = '.' + suffix
-                return prefix, suffix
+        def quote(element_id):
+            chars = ['.', '-']
+            if not [x for x in chars if x in element_id]:
+                return element_id
             else:
-                return '', ''
+                return '"{}"'.format(element.id)
 
-        s = element.id if '.' not in element.id else '"{}"'.format(element.id)
+        s = quote(element.id)
         coords = dot_graph.get_node(s)[0].get_pos().strip('"').split(',')
         xpos, ypos = [int(float(x)) for x in coords]
         prefix = Rbd._make_path(cpath)
@@ -520,15 +500,15 @@ class Rbd(object):
             emitter.add_block(
                 Id='{}{}'.format(prefix, element.id),
                 Page=parent_id,
-                XPosition=xpos * 1.5,
-                YPosition=ypos * 1.5)
+                XPosition=xpos * 2,
+                YPosition=ypos * 2)
         else:
             emitter.add_node(
                 Id='{}{}'.format(prefix, element.id),
                 Page=parent_id,
                 Vote=element.vote_value,
-                XPosition=xpos * 1.5,
-                YPosition=ypos * 1.5)
+                XPosition=xpos * 2,
+                YPosition=ypos * 2)
 
     @staticmethod
     def _serialize_connection(parent, cpath, src, dst, emitter):
