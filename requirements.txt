@@ -21,8 +21,7 @@ sliding-window==0.0.2
 snowballstemmer==1.2.1
 Sphinx==1.5.3
 sphinx-rtd-theme==0.2.4
-SQLAlchemy==1.1.6
 texttable==0.8.7
 xlrd==1.0.0
 xlwt==1.2.0
-yapf==0.16.0
+yapf==0.16.1
