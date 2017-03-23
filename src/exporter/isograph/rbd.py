@@ -261,6 +261,36 @@ class _CompoundBlock(object):
                                 if n2 is not None:
                                     d.add_edge(n1, n2)
 
+        def finalize_graph(graph):
+            """
+            Finalises the given graph.
+
+            Sometimes, the generated internal graph may have multiple nodes
+            with in_degree = 0. In those cases, we need to add a common parent
+            node. Same for the output.
+
+            Generally speaking, the internal graph must have exactly one
+            entry point and exactly one exit point.
+            """
+            entry_points = [
+                x for x in graph.nodes_iter() if graph.in_degree(x) == 0
+            ]
+            exit_points = [
+                x for x in graph.nodes_iter() if graph.out_degree(x) == 0
+            ]
+            if len(entry_points) > 1:
+                entry_node_id = '{}.__ENTRY_POINT'.format(self.name)
+                entry_node = _RbdNode(entry_node_id, None)
+                graph.add_node(entry_node.id, obj=entry_node)
+                for point in entry_points:
+                    graph.add_edge(entry_node.id, point)
+            if len(exit_points) > 1:
+                exit_node_id = '{}.__EXIT_POINT'.format(self.name)
+                exit_node = _RbdNode(exit_node_id, None)
+                graph.add_node(exit_node, obj=exit_node)
+                for point in exit_points:
+                    graph.add_edge(point, exit_node.id)
+
         # Graph representing the block's internal structure
         root = next(filter(lambda x: g.in_degree(x) == 0, g.nodes_iter()))
         logic = get_node_object(g, root).logic
@@ -306,6 +336,7 @@ class _CompoundBlock(object):
                     ig.add_edge(node_in.id, b.id)
                     ig.add_edge(b.id, node_out.id)
 
+        finalize_graph(ig)
         self._block_graph = ig
         temp = nx.drawing.nx_pydot.to_pydot(ig)
         self._dot_graph = pydotplus.graph_from_dot_data(temp.create_dot())
