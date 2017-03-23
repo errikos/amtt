@@ -110,8 +110,8 @@ class ColorizingStreamHandler(logging.StreamHandler):
                                 color = 0x07
                             else:
                                 pass  # error condition ignored
-                        ctypes.windll.kernel32.SetConsoleTextAttribute(h,
-                                                                       color)
+                        ctypes.windll.kernel32.SetConsoleTextAttribute(
+                            h, color)
 
     def colorize(self, message, record):
         if record.levelno in self.level_map:

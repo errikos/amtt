@@ -67,10 +67,12 @@ class RbdConnectionRow(object):
 
 ###############################################################################
 
-SCHEMA = OrderedDict((('RbdBlocks', RbdBlockRow.schema),
-                      ('RbdRepeatBlocks', RbdRepeatBlockRow.schema),
-                      ('RbdNodes', RbdNodeRow.schema),
-                      ('RbdConnections', RbdConnectionRow.schema), ))
+SCHEMA = OrderedDict([
+    ('RbdBlocks', RbdBlockRow.schema),
+    ('RbdRepeatBlocks', RbdRepeatBlockRow.schema),
+    ('RbdNodes', RbdNodeRow.schema),
+    ('RbdConnections', RbdConnectionRow.schema),
+])
 
 __all__ = [
     'RbdBlockRow', 'RbdRepeatBlockRow', 'RbdNodeRow', 'RbdConnectionRow'
