@@ -68,7 +68,7 @@ class ExcelEmitter(object):
         connection = RbdConnectionRow(
             Id=identifier,
             Page=page,
-            Type='Diagonal',
+            Type='Horizontal/vertical',
             InputObjectIndex=src_index,
             InputObjectType=src_type,
             OutputObjectIndex=dst_index,
