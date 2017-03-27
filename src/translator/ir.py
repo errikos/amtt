@@ -114,7 +114,7 @@ class IRContainer(object):
         Exports the graphs to PNG files under the <output>/graphs/ directory.
         """
         if not self.loaded:
-            _logger.warning('Exporting in-memory graphs without a model')
+            _logger.warning('Exporting intermediate graphs without a model')
         output_dir = os.path.join(os.path.abspath(output_dir), 'graphs')
         if not os.path.isdir(output_dir):
             os.makedirs(output_dir, mode=0o755)
