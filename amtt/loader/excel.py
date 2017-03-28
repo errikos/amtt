@@ -2,12 +2,13 @@
 xls (Microsoft Office 2003) Loader module
 """
 
-import os
 import logging
+import os
+
 import pyexcel
 
+from amtt.errors import LoaderError
 from . import Loader
-from errors import LoaderError
 
 _logger = logging.getLogger(__name__)
 

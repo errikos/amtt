@@ -1,10 +1,9 @@
-from tkinter import *
-from tkinter.ttk import *
-from tkinter import filedialog
-
 import webbrowser
+from tkinter import *
+from tkinter import filedialog
+from tkinter.ttk import *
 
-import version
+from amtt import version
 
 WINDOW_TEXT = 'Welcome to the Availability Model Translation Toolkit!\n\n' + \
               'First, select the input type and fill the input path ' + \
@@ -79,7 +78,8 @@ class Application(Frame):
         input_browse = Button(
             self,
             text="Browse...",
-            command=lambda: self._open_input_file_dialog(input_selection.get(), input_value)
+            command=
+            lambda: self._open_input_file_dialog(input_selection.get(), input_value)
         )
         input_browse.place(x=630, y=178)
 
@@ -108,7 +108,8 @@ class Application(Frame):
         output_browse = Button(
             self,
             text="Browse...",
-            command=lambda: self._open_output_file_dialog(target_selection.get(), output_value)
+            command=
+            lambda: self._open_output_file_dialog(target_selection.get(), output_value)
         )
         output_browse.place(x=630, y=298)
 

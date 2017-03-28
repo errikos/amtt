@@ -3,9 +3,10 @@ Exporter module for Isograph Availability Workbench.
 """
 import logging
 
-from exporter import Exporter
-from exporter.isograph.rbd import Rbd
-from exporter.isograph.excel import ExcelEmitter
+from amtt.exporter import Exporter
+
+from amtt.exporter.isograph.excel import ExcelEmitter
+from amtt.exporter.isograph.rbd import Rbd
 
 _logger = logging.getLogger(__name__)
 

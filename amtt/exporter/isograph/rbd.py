@@ -5,16 +5,17 @@ Isograph system modelling is based in reliability block diagrams.
 Therefore, the RBD is the core component of an Isograph model.
 """
 
+import itertools
 import logging
+from collections import OrderedDict, deque
+from enum import Enum
+from itertools import groupby
+
 import networkx as nx
 import pydotplus
-import itertools
-
-from enum import Enum
-from collections import OrderedDict, deque
-from itertools import groupby
 from sliding_window import window
-from errors import ExporterError
+
+from amtt.errors import ExporterError
 
 _logger = logging.getLogger(__name__)
 

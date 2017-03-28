@@ -4,10 +4,11 @@ The translator module.
 
 import logging
 
-from exporter.isograph import IsographExporter
-from errors import ExporterError
-from .rows import RowsContainer
+from amtt.errors import ExporterError
+
+from amtt.exporter.isograph import IsographExporter
 from .ir import IRContainer
+from .rows import RowsContainer
 
 _logger = logging.getLogger(__name__)
 

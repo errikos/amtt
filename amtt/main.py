@@ -2,14 +2,15 @@
 """
 Main entry-point
 """
-import os
-import sys
 import argparse
 import logging
+import os
+import sys
 
-from coloredtty import ColorizingStreamHandler
-from translator import Translator
-from loader import *
+from amtt.coloredtty import ColorizingStreamHandler
+from amtt.loader import *
+
+from amtt.translator import Translator
 
 
 def detect_graphviz():
