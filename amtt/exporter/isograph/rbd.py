@@ -487,7 +487,6 @@ class Rbd(object):
 
     def serialize(self, emitter):
         """Serializes the RBD by making use of the given emitter object."""
-        # TODO
         name, element = next(iter(self._compound_block_index.items()))
         blocks_stack = deque([(element, deque(), None)])
         while blocks_stack:
@@ -503,8 +502,7 @@ class Rbd(object):
                 if uo.name in self._compound_block_index:
                     nblock = self._compound_block_index[uo.name]
                     blocks_stack.append((nblock, npath, uo.instance))
-                self._serialize_element(uo, cblock, cpath, cinstance,
-                                        cblock.internal_dot_graph, emitter)
+                self._serialize_element(uo, cblock, cpath, cinstance, emitter)
             # For each edge (u, v) in the current block,
             # serialise (u, v) as an RbdConnection.
             for u, v in nx.edges_iter(cblock.internal_graph):
@@ -515,14 +513,15 @@ class Rbd(object):
         emitter.commit()
 
     @staticmethod
-    def _serialize_element(element, parent, ppath, pinstance, dot_graph,
-                           emitter):
+    def _serialize_element(element, parent, ppath, pinstance, emitter):
         """Serialises a single element."""
+        dot_graph = parent.internal_dot_graph
 
         def quote_if_necessary(element_id):
             return element_id if str.isalnum(element_id) \
                 else '"{}"'.format(element.id)
 
+        # Prepare arguments
         s = quote_if_necessary(element.id)
         coords = dot_graph.get_node(s)[0].get_pos().strip('"').split(',')
         xpos, ypos = [int(float(x)) for x in coords]
@@ -533,19 +532,17 @@ class Rbd(object):
             prefix = '{}{}.'.format(prefix, pinstance)
         elif pinstance is not None:
             prefix = '{}.'.format(pinstance)
+        # Add block/node to emitter
+        kwargs = {
+            'Id': '{}{}'.format(prefix, element.id),
+            'Page': parent_id,
+            'XPosition': xpos * 2,
+            'YPosition': ypos * 2,
+        }
         if type(element) == _RbdBlock:
-            emitter.add_block(
-                Id='{}{}'.format(prefix, element.id),
-                Page=parent_id,
-                XPosition=xpos * 2,
-                YPosition=ypos * 2)
+            emitter.add_block(**kwargs)
         else:
-            emitter.add_node(
-                Id='{}{}'.format(prefix, element.id),
-                Page=parent_id,
-                Vote=element.vote_value,
-                XPosition=xpos * 2,
-                YPosition=ypos * 2)
+            emitter.add_node(**kwargs)
 
     @staticmethod
     def _serialize_connection(parent, ppath, pinstance, src, dst, emitter):
