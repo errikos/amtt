@@ -7,6 +7,7 @@ Therefore, the RBD is the core component of an Isograph model.
 
 import itertools
 import logging
+import re
 from collections import OrderedDict, deque
 from enum import Enum
 from itertools import groupby
@@ -52,13 +53,20 @@ def find_edges(graph):
 layout = Enum('layout', 'SERIES PARALLEL')
 
 
+def parse_code(c):
+    if re.match('^[a-zA-Z0-9\-_]*\[[Xx]\][a-zA-Z0-9\-_]*$', c):
+        spec = '[X]' if '[X]' in c else '[x]'
+        return c.replace(spec, '{instance}')
+
+
 class _CompoundBlock(object):
     """
     Class modelling an RBD block.
     """
 
-    def __init__(self, name):
+    def __init__(self, name, code):
         self._name = name
+        self._code = parse_code(code)
         self._block_graph = None
         self._dot_graph = None
 
@@ -73,9 +81,10 @@ class _CompoundBlock(object):
                 vo = get_node_object(g, v)
                 if vo.instances > 1:
                     for i in range(1, vo.instances + 1):
-                        yield _RbdBlock(vo.name, type='Rbd block', instance=i)
+                        yield _RbdBlock(vo.name, vo.code, type='Rbd block',
+                                        instance=i)
                 else:
-                    yield _RbdBlock(vo.name, type='Rbd block')
+                    yield _RbdBlock(vo.name, vo.code, type='Rbd block')
 
         def look_for_hint(n):
             r = next(filter(lambda x: f.in_degree(x) == 0, f.nodes_iter()))
@@ -94,12 +103,15 @@ class _CompoundBlock(object):
             if o.instances > 1:
                 if logic is None:
                     for i in range(1, o.instances + 1):
-                        b = _RbdBlock(o.name, type='Rbd block', instance=i)
+                        b = _RbdBlock(o.name, o.code, type='Rbd block',
+                                      instance=i)
                         diagram.add_node(b.id, obj=b)
                 elif logic == 'and':
                     for i, j in window(range(1, o.instances + 1), 2):
-                        b1 = _RbdBlock(o.name, type='Rbd block', instance=i)
-                        b2 = _RbdBlock(o.name, type='Rbd block', instance=j)
+                        b1 = _RbdBlock(o.name, o.code, type='Rbd block',
+                                       instance=i)
+                        b2 = _RbdBlock(o.name, o.code, type='Rbd block',
+                                       instance=j)
                         diagram.add_node(b1.id, obj=b1)
                         diagram.add_node(b2.id, obj=b2)
                         diagram.add_edge(b1.id, b2.id)
@@ -108,7 +120,7 @@ class _CompoundBlock(object):
                 else:  # Invalid logic
                     _logger.error('Leaf node %s has an invalid logic', o.name)
             else:
-                b = _RbdBlock(o.name, type='Rbd block')
+                b = _RbdBlock(o.name, o.code, type='Rbd block')
                 diagram.add_node(b.id, obj=b)
             g.node[leaf].update(diagram=diagram)
 
@@ -351,6 +363,10 @@ class _CompoundBlock(object):
         return self._name
 
     @property
+    def code(self):
+        return self._code
+
+    @property
     def internal_graph(self):
         return self._block_graph
 
@@ -364,8 +380,9 @@ class _RbdBlock(object):
     Class modelling an RBD block instance.
     """
 
-    def __init__(self, name, type, instance=None):
+    def __init__(self, name, code, type, instance=None):
         self._name = name
+        self._code = parse_code(code)
         self._type = type
         self._instance = instance
 
@@ -380,6 +397,10 @@ class _RbdBlock(object):
     @property
     def id(self):
         return str(self)
+
+    @property
+    def code(self):
+        return self._code
 
     @property
     def type(self):
@@ -478,7 +499,7 @@ class Rbd(object):
             ndo = get_node_object(g, n)
             if ndo.is_type('compound'):
                 _logger.debug('Constructing internal graph for: %s', ndo.name)
-                block = _CompoundBlock(ndo.name)
+                block = _CompoundBlock(ndo.name, ndo.code)
                 node_subgraph = extract_subgraph(n)
                 failures_subgraph = extract_failures_subgraph(n)
                 block.generate_internal_graph(node_subgraph, failures_subgraph)
