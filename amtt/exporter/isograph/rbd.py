@@ -436,6 +436,10 @@ class _RbdNode(object):
         return str(self)
 
     @property
+    def code(self):
+        return None
+
+    @property
     def type(self):
         return 'Rbd node'
 
