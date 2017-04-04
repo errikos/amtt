@@ -10,7 +10,7 @@ import logging
 import re
 from collections import OrderedDict, deque
 from enum import Enum
-from itertools import groupby
+from itertools import groupby, chain
 
 import networkx as nx
 import pydotplus
@@ -57,6 +57,8 @@ def parse_code(c):
     if re.match('^[a-zA-Z0-9\-_]*\[[Xx]\][a-zA-Z0-9\-_]*$', c):
         spec = '[X]' if '[X]' in c else '[x]'
         return c.replace(spec, '{instance}')
+    else:
+        return c
 
 
 class _CompoundBlock(object):
@@ -81,8 +83,8 @@ class _CompoundBlock(object):
                 vo = get_node_object(g, v)
                 if vo.instances > 1:
                     for i in range(1, vo.instances + 1):
-                        yield _RbdBlock(vo.name, vo.code, type='Rbd block',
-                                        instance=i)
+                        yield _RbdBlock(
+                            vo.name, vo.code, type='Rbd block', instance=i)
                 else:
                     yield _RbdBlock(vo.name, vo.code, type='Rbd block')
 
@@ -103,15 +105,15 @@ class _CompoundBlock(object):
             if o.instances > 1:
                 if logic is None:
                     for i in range(1, o.instances + 1):
-                        b = _RbdBlock(o.name, o.code, type='Rbd block',
-                                      instance=i)
+                        b = _RbdBlock(
+                            o.name, o.code, type='Rbd block', instance=i)
                         diagram.add_node(b.id, obj=b)
                 elif logic == 'and':
                     for i, j in window(range(1, o.instances + 1), 2):
-                        b1 = _RbdBlock(o.name, o.code, type='Rbd block',
-                                       instance=i)
-                        b2 = _RbdBlock(o.name, o.code, type='Rbd block',
-                                       instance=j)
+                        b1 = _RbdBlock(
+                            o.name, o.code, type='Rbd block', instance=i)
+                        b2 = _RbdBlock(
+                            o.name, o.code, type='Rbd block', instance=j)
                         diagram.add_node(b1.id, obj=b1)
                         diagram.add_node(b2.id, obj=b2)
                         diagram.add_edge(b1.id, b2.id)
@@ -546,21 +548,41 @@ class Rbd(object):
             return element_id if str.isalnum(element_id) \
                 else '"{}"'.format(element.id)
 
-        # Prepare arguments
-        s = quote_if_necessary(element.id)
-        coords = dot_graph.get_node(s)[0].get_pos().strip('"').split(',')
-        xpos, ypos = [int(float(x)) for x in coords]
-        prefix = Rbd._make_path(ppath)
-        inst_str = '.{}'.format(pinstance) if pinstance is not None else ''
-        parent_id = '{}{}{}'.format(prefix, parent.name, inst_str)
-        if prefix and pinstance is not None:
-            prefix = '{}{}.'.format(prefix, pinstance)
-        elif pinstance is not None:
-            prefix = '{}.'.format(pinstance)
+        def coordinates():
+            s = quote_if_necessary(element.id)
+            cx, cy = dot_graph.get_node(s)[0].get_pos().strip('"').split(',')
+            return int(float(cx)), int(float(cy))
+
+        def parent_tokens():
+            prefix = ppath  # The parent path, as is
+            name = parent.name  # Set to parent name initially
+            instance = 0 if not pinstance else pinstance
+            if getattr(parent, 'code', None) and parent.code:
+                name = parent.code.format(instance=instance)
+                if name != parent.code:
+                    instance = None
+            return [x for x in chain(prefix, [name], [instance]) if x]
+
+        def element_tokens():
+            prefix = list(ppath)
+            if pinstance:
+                prefix.append(pinstance)
+            name = element.name
+            instance = 0 if not getattr(element, 'instance', None) or \
+                not element.instance else element.instance
+            if getattr(element, 'code', None) and element.code:
+                name = element.code.format(instance=instance)
+                if name != element.code:
+                    instance = None
+            return [x for x in chain(prefix, [name], [instance]) if x]
+
+        # get element coordinates
+        xpos, ypos = coordinates()
+
         # Add block/node to emitter
         kwargs = {
-            'Id': '{}{}'.format(prefix, element.id),
-            'Page': parent_id,
+            'Id': '.'.join(str(x) for x in element_tokens()),
+            'Page': '.'.join(str(x) for x in parent_tokens()),
             'XPosition': xpos * 2,
             'YPosition': ypos * 2,
         }
@@ -569,28 +591,53 @@ class Rbd(object):
         else:
             emitter.add_node(**kwargs)
 
+        return
+
     @staticmethod
     def _serialize_connection(parent, ppath, pinstance, src, dst, emitter):
-        prefix = Rbd._make_path(ppath)
-        inst_str = '.{}'.format(pinstance) if pinstance is not None else ''
-        parent_id = '{}{}{}'.format(prefix, parent.name, inst_str)
+        def make_path():
+            p = ppath
+            return '.'.join([str(t) for t in p]) + '.' \
+                if len(p) > 1 else str(p[0]) + '.' if len(p) == 1 else ''
+
+        def parent_tokens():
+            prefix = ppath  # The parent path, as is
+            name = parent.name  # Set to parent name initially
+            instance = 0 if not pinstance else pinstance
+            if getattr(parent, 'code', None) and parent.code:
+                name = parent.code.format(instance=instance)
+                if name != parent.code:
+                    instance = None
+            return [x for x in chain(prefix, [name], [instance]) if x]
+
+        def element_tokens(n):
+            prefix = list(ppath)
+            if pinstance:
+                prefix.append(pinstance)
+            name = n.name
+            instance = 0 if not getattr(n, 'instance', None) or \
+                not n.instance else n.instance
+            if getattr(n, 'code', None) and n.code:
+                name = n.code.format(instance=instance)
+                if name != n.code:
+                    instance = None
+            return [x for x in chain(prefix, [name], [instance]) if x]
+
+        parent_id = '.'.join(str(x) for x in parent_tokens())
+        src_id = '.'.join(str(x) for x in element_tokens(src))
+        dst_id = '.'.join(str(x) for x in element_tokens(dst))
+
+        prefix = make_path()
         if prefix and pinstance is not None:
             prefix = '{}{}.'.format(prefix, pinstance)
         elif pinstance is not None:
             prefix = '{}.'.format(pinstance)
-        src_id = '{}{}'.format(prefix, src.id)
-        dst_id = '{}{}'.format(prefix, dst.id)
         identifier = '{}{}-{}'.format(prefix, src.id, dst.id)
         emitter.add_connection(identifier, parent_id, src_id, src.type, dst_id,
                                dst.type)
 
-    @staticmethod
-    def _make_path(p):
-        return '.'.join([str(t) for t in p]) + '.' \
-            if len(p) > 1 else str(p[0]) + '.' if len(p) == 1 else ''
 
-
-# DEBUG
+    # DEBUG
 def export_graph_to_png(g, name):
     p = nx.drawing.nx_pydot.to_pydot(g)
     t = pydotplus.graph_from_dot_data(p.create_dot())
