@@ -1,10 +1,14 @@
 import os
 import webbrowser
+
+from argparse import Namespace
 from tkinter import *
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 from tkinter.ttk import *
 
+from amtt.loader import *
 from amtt import version
+from amtt.main import execute
 
 WINDOW_TEXT = 'Welcome to the Availability Model Translation Toolkit!\n\n' + \
               'First, select the input type and fill the input path ' + \
@@ -77,12 +81,11 @@ class Application(Frame):
         input_entry.place(x=50, y=180)
         input_selection.trace("w", lambda *args: input_value.set(''))
 
-        input_browse = Button(
-            self,
-            text="Browse...",
-            command=
-            lambda: self._open_input_file_dialog(input_selection.get(), input_value)
-        )
+        def input_browse_cmd():
+            return self._open_input_file_dialog(input_selection.get(),
+                                                input_value)
+
+        input_browse = Button(self, text="Browse...", command=input_browse_cmd)
         input_browse.place(x=630, y=178)
 
         target_text = 'Select target'
@@ -107,18 +110,22 @@ class Application(Frame):
         output_entry.place(x=50, y=300)
         target_selection.trace("w", lambda *args: output_value.set(''))
 
+        def output_browse_cmd():
+            return self._open_output_file_dialog(target_selection.get(),
+                                                 output_value)
+
         output_browse = Button(
-            self,
-            text="Browse...",
-            command=
-            lambda: self._open_output_file_dialog(target_selection.get(), output_value)
-        )
+            self, text="Browse...", command=output_browse_cmd)
         output_browse.place(x=630, y=298)
 
         exit_button = Button(self, text="Exit", command=self.quit)
         exit_button.place(x=630, y=420)
 
-        exit_button = Button(self, text="Translate")
+        def trigger_fire():
+            return self.fire(input_selection.get(), input_value.get(),
+                             target_selection.get(), output_value.get())
+
+        exit_button = Button(self, text="Translate", command=trigger_fire)
         exit_button.place(x=540, y=420)
 
     @staticmethod
@@ -139,13 +146,27 @@ class Application(Frame):
 
     @staticmethod
     def _open_output_file_dialog(output_type, output_label_value):
-        if output_type == 'Isograph':
-            method = filedialog.asksaveasfilename
-            kwargs = {'filetypes': [('Microsoft Excel files', '*.xls;*.xlsx')]}
-        else:
-            raise ValueError("Unknown output type: {}".format(output_type))
+        method = filedialog.askdirectory
+        kwargs = {}
         selected_file_path = method(**kwargs)
         output_label_value.set(selected_file_path)
+
+    @staticmethod
+    def fire(input_type, input_path, target, target_path):
+        args = Namespace()
+        if input_type.lower() == 'excel':
+            args.excel_in = input_path
+            args.func = excel.handler
+        elif input_type.lower() == 'csv':
+            args.dir_in = input_path
+            args.func = csv.handler
+        else:
+            raise ValueError("Unknown input type: {}".format(input_type))
+        args.target = target
+        args.output_basedir = target_path
+        args.export_png = False
+        execute(args)
+        messagebox.showinfo('AMTT Info', 'Translation complete!')
 
 
 class AboutDialog(object):

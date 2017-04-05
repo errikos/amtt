@@ -126,6 +126,11 @@ def main():
         datefmt='%H:%M:%S',
         level=level,
         handlers=[ColorizingStreamHandler()])
+    execute(args)
+    sys.exit(0)
+
+
+def execute(args):
     # call the appropriate handler for the input type
     # and get the appropriate loader
     loader = args.func(args)
@@ -137,7 +142,6 @@ def main():
         translator.export_png()
         sys.exit(0)
     translator.translate()
-    sys.exit(0)
 
 
 def ui_main():
