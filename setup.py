@@ -23,7 +23,6 @@ setup(
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
     version='1.0.0',
-
     description='Availability Modelling Translation Toolkit',
     long_description=long_description,
 
@@ -79,12 +78,17 @@ setup(
         'sliding-window',
     ],
 
+    # If there are data files included in your packages that need to be
+    # installed, specify them here.  If using Python 2.6 or less, then these
+    # have to be included in MANIFEST.in as well.
+    package_data={
+        'amtt.ui': ['icon64x64.png'],
+    },
+
     # List additional groups of dependencies here (e.g. documentation
     # dependencies). You can install these using the following syntax:
     # $ pip install -e .[docs]
-    extras_require={
-        'docs': ['Sphinx', 'sphinx-rtd-theme']
-    },
+    extras_require={'docs': ['Sphinx', 'sphinx-rtd-theme']},
 
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
@@ -92,6 +96,6 @@ setup(
     entry_points={
         'console_scripts': [
             'amtt=amtt.main:main',
+            'amtt-gui=amtt.main:ui_main',
         ],
-    },
-)
+    }, )
