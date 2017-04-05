@@ -137,12 +137,19 @@ def main():
         translator.export_png()
         sys.exit(0)
     translator.translate()
+    sys.exit(0)
+
+
+def ui_main():
+    from amtt.ui.app import run_ui
+    run_ui()
+    sys.exit(0)
 
 
 if __name__ == "__main__":
-    main()
-    # from ui.app import run_ui
-    # run_ui()
-    sys.exit(0)
+    if '-w' in sys.argv:
+        ui_main()
+    else:
+        main()
 
 __all__ = []
