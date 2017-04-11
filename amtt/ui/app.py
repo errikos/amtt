@@ -1,3 +1,7 @@
+"""
+User interface app module.
+"""
+import sys
 import os
 import webbrowser
 
@@ -6,7 +10,7 @@ from tkinter import *
 from tkinter import filedialog, messagebox
 from tkinter.ttk import *
 
-from amtt.loader import *
+from amtt.loader import csv, excel
 from amtt import version
 from amtt.main import execute
 
@@ -37,8 +41,15 @@ class Application(Frame):
         self._parent.minsize(width=720, height=480)
         self._parent.resizable(width=False, height=False)
         self._parent.title("Availability Model Translation Toolkit")
-        img = PhotoImage(file=os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), 'icon64x64.png'))
+        # Check if the app is frozen (PyInstaller bundle) and look in the
+        # appropriate path for the application icon
+        if getattr(sys, 'frozen', False):
+            img = PhotoImage(file=os.path.join(
+                os.path.abspath(sys._MEIPASS),
+                'amtt', 'ui', 'icon64x64.png'))
+        else:
+            img = PhotoImage(file=os.path.join(
+                os.path.dirname(os.path.abspath(__file__)), 'icon64x64.png'))
         self._parent.tk.call('wm', 'iconphoto', self._parent._w, img)
 
     def _init_menu_bar(self):
