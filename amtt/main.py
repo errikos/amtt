@@ -151,9 +151,9 @@ def ui_main():
 
 
 if __name__ == "__main__":
-    if '-w' in sys.argv:
-        ui_main()
-    else:
+    if '--cli' in sys.argv:
         main()
+    else:
+        ui_main()
 
 __all__ = []
