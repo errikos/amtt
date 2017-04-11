@@ -122,7 +122,8 @@ class Application(Frame):
         exit_button.place(x=630, y=420)
 
         def trigger_fire():
-            return self.fire(input_selection.get(), input_value.get(),
+            return self.fire(input_selection.get(),
+                             input_value.get(),
                              target_selection.get(), output_value.get())
 
         exit_button = Button(self, text="Translate", command=trigger_fire)
