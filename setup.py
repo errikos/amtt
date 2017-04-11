@@ -10,7 +10,46 @@ from setuptools import setup, find_packages
 from codecs import open
 from os import path
 
+import sys
+import distutils
+import subprocess
+
+
 here = path.abspath(path.dirname(__file__))
+
+
+class BuildStandaloneExeCommand(distutils.cmd.Command):
+    """
+    Custom command to build standalone executable using PyInstaller.
+    
+    Invoke by executing:
+        python setup.py build_standalone
+    """
+
+    description = 'build standalone executable with PyInstaller'
+    user_options = []
+
+    def initialize_options(self):
+        """Set default values for user options."""
+
+    def finalize_options(self):
+        """Post-process user options."""
+
+    def run(self):
+        """Run command."""
+        sep = ';' if sys.platform == 'win32' else ':'
+        command = ' '.join([
+            'pyinstaller',
+            '  --onefile',
+            '  --add-data amtt/ui/icon64x64.png{sep}amtt/ui'.format(sep=sep),
+            '  amtt/main.py',
+            '  -i resources/icon.ico',
+            '  -n amtt_{plat}'.format(plat=sys.platform),
+        ])
+        self.announce('Building standalone executable with PyInstaller',
+                      level=distutils.log.INFO)
+        subprocess.check_call(command)
+
 
 # Get the long description from the README file
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
@@ -101,4 +140,10 @@ setup(
             'amtt=amtt.main:main',
             'amtt-gui=amtt.main:ui_main',
         ],
-    }, )
+    },
+
+    # Provide custom command for building standalone executable
+    cmdclass={
+        'build_standalone': BuildStandaloneExeCommand,
+    },
+)
