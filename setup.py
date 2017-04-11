@@ -88,7 +88,10 @@ setup(
     # List additional groups of dependencies here (e.g. documentation
     # dependencies). You can install these using the following syntax:
     # $ pip install -e .[docs]
-    extras_require={'docs': ['Sphinx', 'sphinx-rtd-theme']},
+    extras_require={
+        'docs': ['Sphinx', 'sphinx-rtd-theme'],
+        'build': ['PyInstaller'],
+    },
 
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
