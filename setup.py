@@ -48,7 +48,7 @@ class BuildStandaloneExeCommand(distutils.cmd.Command):
         ])
         self.announce('Building standalone executable with PyInstaller',
                       level=distutils.log.INFO)
-        subprocess.check_call(command)
+        subprocess.check_call(command, shell=True)
 
 
 # Get the long description from the README file
