@@ -3,24 +3,16 @@
 Building from source
 ====================
 
-This section outlines the procedure to follow if you need to build a bundle of
-amtt (which can be useful if you want to distribute the application without
-having to build it in every machine).
+This section outlines the procedure to follow if you need to build a bundle of amtt (which can be useful if you want to distribute the application without having to build it in every machine).
 
 Python version
 --------------
 
-amtt is written in Python and was developed with **Python 3.5**.
-It has been tested to work with Python 3.6 as well, although as of the time of
-writing this text, creating a bundle with Python 3.6+ is not supported. The
-reason is explained in the following note.
+amtt is written in Python and was developed with **Python 3.5**. It has been tested to work with Python 3.6 as well, although as of the time of writing this text, creating a bundle with Python 3.6+ is not supported. The reason is explained in the following note.
 
+No matter which Python version you choose, you should always download the latest point release for that version. For example, as of the time of writing this text, the latest Python 3.5 version is 3.5.3 and that is what you would choose if you read this text on 13th April 2017.
 
-**Note:** amtt uses PyInstaller in order to build standalone archives. While
-amtt should work with any Python 3.5+ version, PyInstaller does not usually
-support the latest Python version right away. Before proceeding, please check
-with the |PyInstaller| home page for the maximum supported Python version.
-If in doubt, it is recommended that you use Python 3.5 (either 32 or 64 bit).
+**Note:** amtt uses PyInstaller in order to build standalone archives. While amtt should work with any Python 3.5+ version, PyInstaller does not usually support the latest Python version right away. Before proceeding, please check with the |PyInstaller| home page for the maximum supported Python version. If in doubt, it is recommended that you use Python 3.5 (either 32 or 64 bit).
 
 Requirements
 ------------
@@ -31,6 +23,22 @@ Download and install Python
 * For **Windows**, download the |PythonInstallerWin| (either 32 or 64 bit will work). Upon installing, make sure to check the "Add Python to PATH" option.
 * For **Linux**, Python should be available via your package manager. You can also refer to the |PyEnv| project, which allows you to install any Python version to any distribution locally (as well as the system meets the pyenv dependencies).
 * For **MacOS**, you can install Python via the |PythonInstallerMac|, via |Homebrew| or via the |PyEnv| project.
+
+Optional: Use a Python virtual environment
+""""""""""""""""""""""""""""""""""""""""""
+
+This step is optional, but highly recommended. A Python virtual environment allows you to create a completely isolated environment in which you can install Python packages. This approach avoids cluttering a Python installation with many packages, probably unnecessary for the system (e.g. the packages that this build procedure pulls and installs).
+
+There are many ways to create a Python virtual environment, depending on what you use. For example, |PyEnv| has build-in support for creating and managing virtual environments. Below are some generic instructions, based on the ``venv`` Python module included in the standard library (no need of any external tools).
+
+1. Choose where you want the virtual environment to be created. Let the path to that directory be ``/home/user/path/to/venv/directory``. It is important that this is a local directory, for which you have read and write rights.
+2. Create the virtual environment::
+
+    python -m venv /home/user/path/to/venv/directory
+
+   The above command adds all the required executables (``python``, ``pip``, etc.) in the ``bin`` directory within the virtual environment directory. From now on, whenever you need to execute ``python``, ``pip`` or any other executable, you can execute ``/home/user/path/to/venv/directory/bin/python``, ``/home/user/path/to/venv/directory/bin/pip``, etc. respectively.
+
+   Apart from |PyEnv|, another tool that greatly simplifies virtual environment management is virtualenvwrapper. See |virtualenvwrapper| for installation and usage details (**attention if using Windows:** the installation procedure is different, check the aforementioned link).
 
 Clone or download the amtt repository
 """""""""""""""""""""""""""""""""""""
@@ -154,4 +162,10 @@ Therefore, you can only build for Linux from a Linux installation, for MacOS fro
 
    <a href="https://brew.sh/" target="_blank">
      Homebrew
+   </a>
+
+.. |virtualenvwrapper| raw:: html
+
+   <a href="https://virtualenvwrapper.readthedocs.io/en/latest/" target="_blank">
+     virtualenvwrapper
    </a>
