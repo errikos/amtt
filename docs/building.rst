@@ -48,25 +48,38 @@ Installing the application
 
 After you have downloaded the source, you can start the installation process.
 
-Change directory, or ``cd``, to the directory containing the source code (you will first need to extract archive if you downloaded the master snapshot). Then, do the following:
+Change directory, or ``cd``, to the directory containing the source code (you will first need to extract archive if you downloaded the master snapshot). Then, you have two options:
 
-1. To fetch the dependencies and build the application::
+* via ``pip`` (**recommended**):
 
-    python setup.py build
+  ``pip`` is a package manager for Python packages and is automatically installed if you install Python via the Windows/MacOS installers and the Homebrew/pyenv projects. For package manager based installations in Linux, you may need to install it manually.
 
-2. To install the application, after building::
+  Once inside the source directory, execute::
 
-    python setup.py install
+      pip install .
 
-3. In you encounter an error like the following::
 
-    error: The 'pyexcel' distribution was not found and is required by amtt
+* without ``pip``, via ``distutils``:
+
+  ``distutils`` are bundled in the standard Python distribution.
+
+  1. To fetch the dependencies and build the application::
+
+      python setup.py build
+
+  2. To install the application, after building::
+
+      python setup.py install
+
+  3. In you encounter an error like the following::
+
+      error: The 'pyexcel' distribution was not found and is required by amtt
 
    then execute the install command again::
 
-    python setup.py install
+      python setup.py install
 
-The above two commands will install the application in your local python distribution (the one that resembles to the executed ``python`` command) along with all the required dependencies. They will also install the application executables, which can then be called from the command line (see `Running the application`_ below for more details).
+  The above two commands will install the application in your local python distribution (the one that resembles to the executed ``python`` command) along with all the required dependencies. They will also install the application executables, which can then be called from the command line (see `Running the application`_ below for more details).
 
 
 Running the application
@@ -90,7 +103,20 @@ This bundle will have to dependencies whatsoever and will run on a given machine
 To create an application bundle:
 
 1. Make sure you have followed the installation procedure in `Installing the application`_.
-2. While in the project root folder (where ``setup.py`` resides), execute::
+2. Install ``PyInstaller``:
+
+  * via ``pip`` (easiest, trouble-free method)::
+
+      pip install PyInstaller
+
+  * without ``pip``:
+
+    1. Download the latest PyInstaller package from PyPi: https://pypi.python.org/pypi/PyInstaller/
+    2. Extract it, ``cd`` to the extracted directory and execute::
+
+        python setup.py install
+
+3. While in the project root folder (where ``setup.py`` resides), execute::
 
     python setup.py build_standalone
 
