@@ -29,6 +29,11 @@ class ExcelLoader(Loader):
     def __init__(self, file_path):
         self._file_path = file_path
 
+    @staticmethod
+    def empty(row):
+        t = [c for c in row if c]
+        return len(t) == 0
+
     def load(self, container):
         # Sheet names are listed here...
         sheet_names = [
@@ -52,5 +57,5 @@ class ExcelLoader(Loader):
             getattr(container, method)(**{
                 key.lower().replace(' ', '_').strip(): Loader.strip(val)
                 for key, val in zip(sheet.colnames, row)
-            }) for row in sheet.rows()
+            }) for row in sheet.rows() if not ExcelLoader.empty(row)
         ] for sheet, method in zip(sheets, method_names)]

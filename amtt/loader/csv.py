@@ -44,4 +44,7 @@ class CsvLoader(Loader):
                     for field in reader.fieldnames
                 ]
                 # add the flat components to the translator structures
-                [getattr(container, method_name)(**row) for row in reader]
+                [
+                    getattr(container, method_name)(**row) for row in reader
+                    if row
+                ]
