@@ -52,7 +52,7 @@ Change directory, or ``cd``, to the directory containing the source code (you wi
 
 * via ``pip`` (**recommended**):
 
-  ``pip`` is a package manager for Python packages and is automatically installed if you install Python via the Windows/MacOS installers and the Homebrew/pyenv projects. For package manager based installations in Linux, you may need to install it manually.
+  ``pip`` is a package manager for Python packages and is automatically installed if you install Python via the Windows/MacOS installers or the Homebrew/pyenv projects. For package manager based installations in Linux, you may need to install it manually.
 
   Once inside the source directory, execute::
 
@@ -98,7 +98,7 @@ Building an application bundle
 
 If you want to distribute the application among many users, the easiest way is to create an application bundle, i.e. a standalone executable, that is ready-to-run on any machine.
 
-This bundle will have to dependencies whatsoever and will run on a given machine, even if no Python version is installed on it.
+This bundle will have no dependencies whatsoever and will run on a given machine, even if no Python version is installed on it.
 
 To create an application bundle:
 
