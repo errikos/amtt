@@ -38,7 +38,7 @@ There are many ways to create a Python virtual environment, depending on what yo
 
    The above command adds all the required executables (``python``, ``pip``, etc.) in the ``bin`` directory within the virtual environment directory. From now on, whenever you need to execute ``python``, ``pip`` or any other executable, you can execute ``/home/user/path/to/venv/directory/bin/python``, ``/home/user/path/to/venv/directory/bin/pip``, etc. respectively.
 
-   Apart from |PyEnv|, another tool that greatly simplifies virtual environment management is virtualenvwrapper. See |virtualenvwrapper| for installation and usage details (**attention if using Windows:** the installation procedure is different, check the aforementioned link).
+Apart from |PyEnv|, another tool that greatly simplifies virtual environment management is virtualenvwrapper. See |virtualenvwrapper| for installation and usage details (**attention if using Windows:** the installation procedure is different, check the aforementioned link).
 
 Clone or download the amtt repository
 """""""""""""""""""""""""""""""""""""
