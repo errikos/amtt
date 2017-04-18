@@ -121,7 +121,7 @@ setup(
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
     package_data={
-        'amtt.ui': ['icon64x64.png'],
+        'amtt.ui': ['icon64x64.png', 'icon64x64.gif'],
     },
 
     # List additional groups of dependencies here (e.g. documentation
