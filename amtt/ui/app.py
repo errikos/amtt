@@ -43,13 +43,13 @@ class Application(Frame):
         self._parent.title("Availability Model Translation Toolkit")
         # Check if the app is frozen (PyInstaller bundle) and look in the
         # appropriate path for the application icon
+        icon_name = 'icon64x64.gif'
         if getattr(sys, 'frozen', False):
             img = PhotoImage(file=os.path.join(
-                os.path.abspath(sys._MEIPASS),
-                'amtt', 'ui', 'icon64x64.png'))
+                os.path.abspath(sys._MEIPASS), 'amtt', 'ui', icon_name))
         else:
             img = PhotoImage(file=os.path.join(
-                os.path.dirname(os.path.abspath(__file__)), 'icon64x64.png'))
+                os.path.dirname(os.path.abspath(__file__)), icon_name))
         self._parent.tk.call('wm', 'iconphoto', self._parent._w, img)
 
     def _init_menu_bar(self):
@@ -144,13 +144,27 @@ class Application(Frame):
     def _open_input_file_dialog(input_type, input_label_value):
         if input_type == 'Excel':
             method = filedialog.askopenfilename
-            kwargs = {'filetypes': [('Microsoft Excel files', '*.xls;*.xlsx')]}
+            kwargs = {
+                'title': 'Please select input Excel file',
+                'filetypes': [
+                    ('All files', '*.*'),
+                    ('Microsoft Excel files', ('*.xlsx', '*.xls')),
+                ]
+            }
         elif input_type == 'CSV':
             method = filedialog.askdirectory
-            kwargs = {}
+            kwargs = {
+                'title': 'Please select CSV directory',
+            }
         elif input_type == 'XML':
             method = filedialog.askopenfilename
-            kwargs = {'filetypes': [('XML files', '*.xml')]}
+            kwargs = {
+                'title': 'Please select input XML file',
+                'filetypes': [
+                    ('All files', '*.*'),
+                    ('XML files', '*.xml'),
+                ]
+            }
         else:
             raise ValueError("Unknown input type: {}".format(input_type))
         selected_file_path = method(**kwargs)
@@ -159,7 +173,9 @@ class Application(Frame):
     @staticmethod
     def _open_output_file_dialog(output_type, output_label_value):
         method = filedialog.askdirectory
-        kwargs = {}
+        kwargs = {
+            'title': 'Please select output directory'
+        }
         selected_file_path = method(**kwargs)
         output_label_value.set(selected_file_path)
 
