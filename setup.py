@@ -42,6 +42,7 @@ class BuildStandaloneExeCommand(distutils.cmd.Command):
             'pyinstaller',
             '  --onefile',
             '  --add-data amtt/ui/icon64x64.png{sep}amtt/ui'.format(sep=sep),
+            '  --add-data amtt/ui/icon64x64.gif{sep}amtt/ui'.format(sep=sep),
             '  amtt/main.py',
             '  -i resources/icon.ico',
             '  -n amtt_{plat}'.format(plat=sys.platform),
