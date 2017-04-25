@@ -50,7 +50,10 @@ def find_edges(graph):
         return start, end
 
 
-layout = Enum('layout', 'SERIES PARALLEL')
+class Layout(Enum):
+    """Enumeration for layout hinting."""
+    series = 1
+    parallel = 2
 
 
 def parse_code(c):
@@ -94,9 +97,9 @@ class _CompoundBlock(object):
                 if get_node_object(g, n).name == get_node_object(f, v).name:
                     logic = get_node_object(f, u).logic
                     if logic in ('or', 'active'):
-                        g.node[n].update(hint=layout.PARALLEL)
+                        g.node[n].update(hint=Layout.parallel)
                     elif logic == 'and':
-                        g.node[n].update(hint=layout.SERIES)
+                        g.node[n].update(hint=Layout.series)
 
         def create_basic_diagram(leaf):
             o = get_node_object(g, leaf)
