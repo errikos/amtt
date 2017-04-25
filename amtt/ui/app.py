@@ -1,7 +1,6 @@
 """
 User interface app module.
 """
-import sys
 import os
 import webbrowser
 
@@ -145,7 +144,8 @@ class Application(Frame):
         if input_type == 'Excel':
             method = filedialog.askopenfilename
             kwargs = {
-                'title': 'Please select input Excel file',
+                'title':
+                'Please select input Excel file',
                 'filetypes': [
                     ('All files', '*.*'),
                     ('Microsoft Excel files', ('*.xlsx', '*.xls')),
@@ -173,9 +173,7 @@ class Application(Frame):
     @staticmethod
     def _open_output_file_dialog(output_type, output_label_value):
         method = filedialog.askdirectory
-        kwargs = {
-            'title': 'Please select output directory'
-        }
+        kwargs = {'title': 'Please select output directory'}
         selected_file_path = method(**kwargs)
         output_label_value.set(selected_file_path)
 
