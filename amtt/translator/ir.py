@@ -16,6 +16,16 @@ IR_GRAPH_ATTRIBUTES = dict(
     node=dict(shape='box'), )
 
 
+def is_template_def(row):
+    """
+    Returns whether a component row is a template definition.
+    
+    A component row is a template definition when his Parent is
+    defined as a * (star wildcard).
+    """
+    return row.parent == '*'
+
+
 class IRContainer(object):
     """
     Class modelling the in-memory structures container.
@@ -45,7 +55,7 @@ class IRContainer(object):
         # Build raw input graph
         [
             self._raw_input_graph.add_edge(row.parent, row.name)
-            for row in row_container.component_list if row.parent != '*'
+            for row in row_container.component_list if is_template_def(row)
         ]
         # Check if raw input graph contains cycles
         if not nx.is_directed_acyclic_graph(self._raw_input_graph):
