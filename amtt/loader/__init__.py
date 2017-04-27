@@ -28,6 +28,24 @@ from amtt.errors import LoaderError
 _logger = logging.getLogger(__name__)
 
 
+class InputSheet(enum.Enum):
+    components = 1
+    logic = 2
+    failure_models = 3
+
+
+# The following definitions are used for schema validation
+# (see validate_schema method below).
+#
+# SCHEMAS is a dict containing members of the InputSheet enum as keys
+# and sets containing the valid columns for that table as values.
+SCHEMAS = {
+    InputSheet.components: {'type', 'name', 'parent', 'code', 'instances'},
+    InputSheet.logic: {'type', 'component', 'logic'},
+    InputSheet.failure_models: {},
+}
+
+
 class Loader(object):
     """
     The Loader base class. Every loader must be a subclass of this class.
@@ -52,44 +70,30 @@ class Loader(object):
     def strip(val):
         return val.strip() if type(val) == str else val
 
+    @staticmethod
+    def validate_schema(schema, schema_type):
+        """
+        Schema validation method.
 
-class InputSheet(enum.Enum):
-    components = 1
-    logic = 2
-    failure_models = 3
+        Raises a LoaderError if any of the columns defined in SCHEMAS
+        for schema_type is missing from from schema.
 
-
-# The following definitions are used for schema validation
-# (see validate_schema method below).
-#
-# SCHEMAS is a dict containing members of the InputSheet enum as keys
-# and sets containing the valid columns for that table as values.
-SCHEMAS = {
-    InputSheet.components: {'type', 'name', 'parent', 'code', 'instances'},
-    InputSheet.logic: {'type', 'component', 'logic'},
-    InputSheet.failure_models: {},
-}
-
-
-def validate_schema(schema, schema_type):
-    """
-    Schema validation function.
-    
-    Raises a LoaderError if any of the columns defined in SCHEMAS
-    for schema_type is missing from from schema.
-    
-    If schema has more columns than its specification in SCHEMAS,
-    then a warning is issued, but no Exception is raised.
-    """
-    schema_def = SCHEMAS[schema_type]
-    schema = set(schema)
-    if schema_def - schema:  # Columns missing from input schema => ERROR
-        _logger.error('Input schema for %s is missing some columns: %s',
-                      schema_type.name, schema_def - schema)
-        raise LoaderError('Schema validation for %s failed', schema_type.name)
-    elif schema - schema_def:  # Input schema has extra columns => WARNING
-        _logger.warning('Input schema for %s has extra columns: %s',
-                        schema_type.name, schema - schema_def)
+        If schema has more columns than its specification in SCHEMAS,
+        then a warning is issued, but no Exception is raised.
+        
+        You may override this method in your Loader class if needed,
+        e.g. in order to conduct more sophisticated validation.
+        """
+        schema_def = SCHEMAS[schema_type]
+        schema = set(schema)
+        if schema_def - schema:  # Columns missing from input schema => ERROR
+            _logger.error('Input schema for %s is missing some columns: %s',
+                          schema_type.name, schema_def - schema)
+            raise LoaderError('Schema validation for %s failed',
+                              schema_type.name)
+        elif schema - schema_def:  # Input schema has extra columns => WARNING
+            _logger.warning('Input schema for %s has extra columns: %s',
+                            schema_type.name, schema - schema_def)
 
 
 # Contains all available loaders.
