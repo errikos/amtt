@@ -35,27 +35,22 @@ class ExcelLoader(Loader):
         return len(t) == 0
 
     def load(self, container):
-        # Sheet names are listed here...
-        sheet_names = [
-            'Components',
-            'Logic',
-        ]
-        # ... and the flat handler methods here.
-        method_names = [
-            'add_component',
-            'add_logic',
-        ]
-        # Attention: sheet_names and method_names above are expected to have
-        #            a 1-1 correspondence
-        sheets = [
-            pyexcel.get_sheet(
+        # For each sheet in sheet definitions
+        for sheet_type, name in self.sheet_definitions_iter():
+            # -- read sheet
+            rsheet = pyexcel.get_sheet(
                 file_name=self._file_path,
-                sheet_name=sheet_name,
-                name_columns_by_row=0) for sheet_name in sheet_names
-        ]
-        [[  # Call the appropriate method for each sheet and store rows.
-            getattr(container, method)(**{
-                key.lower().replace(' ', '_').strip(): Loader.strip(val)
-                for key, val in zip(sheet.colnames, row)
-            }) for row in sheet.rows() if not ExcelLoader.empty(row)
-        ] for sheet, method in zip(sheets, method_names)]
+                sheet_name=name,
+                name_columns_by_row=False)
+            # -- call validation routine
+            colnames = [x.lower() for x in rsheet.colnames]
+            self.validate_schema(colnames, sheet_type)
+            # -- read and store non-empty sheet rows
+            for row in filter(lambda r: not self.empty(r), rsheet.rows()):
+                # -- rowdict contains column:value pairs
+                row_dict = {
+                    key.lower().replace(' ', '_').strip(): Loader.strip(val)
+                    for key, val in zip(rsheet.colnames, row)
+                }
+                # -- add rowdict to container
+                container.add_row(sheet_type, **row_dict)
