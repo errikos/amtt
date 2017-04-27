@@ -66,6 +66,12 @@ class Loader(object):
     instantiating objects or putting data in the Keep.
     """
 
+    _sheet_definitions = {
+        InputSheet.components: 'Components',
+        InputSheet.logic: 'Logic',
+        # InputSheet.failure_models: 'FailureModels',
+    }
+
     @staticmethod
     def strip(val):
         return val.strip() if type(val) == str else val
@@ -94,6 +100,11 @@ class Loader(object):
         elif schema - schema_def:  # Input schema has extra columns => WARNING
             _logger.warning('Input schema for %s has extra columns: %s',
                             schema_type.name, schema - schema_def)
+
+    @staticmethod
+    def sheet_definitions_iter():
+        for definition in Loader._sheet_definitions.items():
+            yield definition
 
 
 # Contains all available loaders.
