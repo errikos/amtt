@@ -1,8 +1,13 @@
 """
 Contains the translator flat elements, as read from the input source.
-"""
 
+Each row is modelled as a class, in order to allow easier manipulation,
+if such functionality is required later on.
+
+For the time being, row modelling classes act only as value containers.
+"""
 import logging
+from amtt.loader import InputSheet, SCHEMAS
 
 _logger = logging.getLogger(__name__)
 
@@ -13,7 +18,7 @@ class ComponentRow(object):
     """
 
     def __init__(self, **kwargs):
-        for arg in ('type', 'name', 'parent', 'code', 'instances'):
+        for arg in SCHEMAS[InputSheet.components]:
             setattr(self, arg, kwargs[arg])
 
 
@@ -23,7 +28,7 @@ class LogicRow(object):
     """
 
     def __init__(self, **kwargs):
-        for arg in ('type', 'component', 'logic'):
+        for arg in SCHEMAS[InputSheet.logic]:
             setattr(self, arg, kwargs[arg])
 
 
@@ -35,12 +40,23 @@ class RowsContainer(object):
     def __init__(self):
         self._components = []
         self._logic = []
-        self._properties = []
 
-    def add_component(self, **kwargs):
+    def add_row(self, sheet_type, **kwargs):
+        """
+        Adds a new row of type sheet_type to the container.
+        Delegates insertion to one of the methods below.
+        """
+        {   # Python-like switch :)
+            InputSheet.components: self._add_component,
+            InputSheet.logic: self._add_logic,
+        }[sheet_type](**kwargs)
+
+    def _add_component(self, **kwargs):
+        """Adds a new component row."""
         self._components.append(ComponentRow(**kwargs))
 
-    def add_logic(self, **kwargs):
+    def _add_logic(self, **kwargs):
+        """Adds a new logic row."""
         self._logic.append(LogicRow(**kwargs))
 
     @property
