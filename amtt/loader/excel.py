@@ -36,11 +36,11 @@ class ExcelLoader(Loader):
 
     def load(self, container):
         # For each sheet in sheet definitions
-        for sheet_type, name in self.sheet_definitions_iter():
+        for sheet_type, sheet_name in self.sheet_definitions_iter():
             # -- read sheet
             rsheet = pyexcel.get_sheet(
                 file_name=self._file_path,
-                sheet_name=name,
+                sheet_name=sheet_name,
                 name_columns_by_row=False)
             # -- call validation routine
             colnames = [x.lower() for x in rsheet.colnames]
