@@ -12,8 +12,17 @@ from amtt.errors import TranslatorError
 
 _logger = logging.getLogger(__name__)
 
-IR_GRAPH_ATTRIBUTES = dict(
-    node=dict(shape='box'), )
+# IR Graph attributes
+IR_GRAPH_ATTRIBUTES = {
+    'node': {
+        'shape': 'box',
+    }
+}
+
+# Some constant declarations
+RAW_INPUT_GRAPH_FILENAME = 'raw_input.png'
+COMPONENT_GRAPH_FILENAME = 'components.png'
+FAILURES_GRAPH_FILENAME = 'failures.png'
 
 
 def is_template_def(row):
@@ -36,13 +45,10 @@ class IRContainer(object):
         # Initialize components and failures index
         self._components_index = OrderedDict()
         self._failures_index = OrderedDict()
-        # Initialize graph structures
-        self._raw_input_graph = nx.DiGraph(
-            filename='raw_input.png', **IR_GRAPH_ATTRIBUTES)
-        self._components_graph = nx.DiGraph(
-            filename='components.png', **IR_GRAPH_ATTRIBUTES)
-        self._failures_graph = nx.DiGraph(
-            filename='failures.png', **IR_GRAPH_ATTRIBUTES)
+        # Declare graph structures
+        self._raw_input_graph = None
+        self._components_graph = None
+        self._failures_graph = None
 
     def load_from_rows(self, row_container):
         """Loads the model from the provided row container"""
@@ -53,10 +59,16 @@ class IRContainer(object):
     def _build_graphs(self, row_container):
         _logger.info('Building graphs')
         # Build raw input graph
+        self._raw_input_graph = nx.DiGraph(
+            filename=RAW_INPUT_GRAPH_FILENAME, **IR_GRAPH_ATTRIBUTES)
+        rig = self._raw_input_graph
+        # -- Form the graph by adding edges, nodes will be added automatically
         [
-            self._raw_input_graph.add_edge(row.parent, row.name)
-            for row in row_container.component_list if is_template_def(row)
+            rig.add_edge(row.parent, row.name)
+            for row in row_container.component_list if not is_template_def(row)
         ]
+        # -- Keep name as a separate attribute because the ID will change later
+        nx.set_node_attributes(rig, 'basename', {n: n for n in rig})
         # Check if raw input graph contains cycles
         if not nx.is_directed_acyclic_graph(self._raw_input_graph):
             _logger.error('Input model contains a component cycle')
@@ -87,13 +99,11 @@ class IRContainer(object):
             tokens.insert(-1, str(node_tokens[-1]))
             return '.'.join(tokens)
 
-        # -- create temporary graph, to be the components graph
-        g = self._components_graph
-        # -- copy the raw input graph to tmp1
-        g.add_edges_from(self._raw_input_graph.edges_iter())
+        # -- copy the raw input graph to g
+        g = self._raw_input_graph.copy()
         changed = True
         # -- Fixed-Point algorithm:
-        # -- Iterate until tmp1 and tmp2 remain identical after last iteration
+        # -- Iterate until g does not change
         while changed:
             changed = False
             for u, v in nx.bfs_edges(g, 'ROOT'):
@@ -124,19 +134,26 @@ class IRContainer(object):
                         g.add_edges_from(rsub.edges_iter())
                     changed = True
                     break
-        # end of method
+        # save g as components graph
+        g.graph['filename'] = COMPONENT_GRAPH_FILENAME
+        self._components_graph = g
 
     def export_graphs(self, output_dir):
         """
         Exports the graphs to PNG files under the <output>/graphs/ directory.
         """
+        # Issue warning if method is called without loading a model
         if not self.loaded:
             _logger.warning('Exporting intermediate graphs without a model')
+        # Determine and create output directory, if needed
         output_dir = os.path.join(os.path.abspath(output_dir), 'graphs')
         if not os.path.isdir(output_dir):
             os.makedirs(output_dir, mode=0o755)
-        for g in (self._raw_input_graph, self._components_graph,
-                  self._failures_graph):
+        # Export graphs to image files
+        glist = [
+            self._raw_input_graph, self._components_graph, self._failures_graph
+        ]
+        for g in filter(lambda x: x is not None, glist):  # Only non-None
             pdg = nx.drawing.nx_pydot.to_pydot(g)
             pdg.write_png(os.path.join(output_dir, g.graph['filename']))
 
