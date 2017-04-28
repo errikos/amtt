@@ -51,13 +51,46 @@ class IRContainer(object):
         self._failures_graph = None
 
     def load_from_rows(self, row_container):
-        """Loads the model from the provided row container"""
+        """Loads the model from the provided row container."""
         _logger.info('Importing model from rows')
         self._build_graphs(row_container)
         self._loaded = True
 
+    def _build_indexes(self, row_container):
+        """
+        Builds the necessary internal indexes.
+        
+        This method is not meant to be called from outside the class.
+        """
+        _logger.info('Building indexes')
+
     def _build_graphs(self, row_container):
+        """
+        Builds all necessary graphs.
+        
+        This method is not meant to be called from outside the class.
+        """
         _logger.info('Building graphs')
+        # Build raw input components graph
+        self._build_raw_input_component_graph(row_container)
+        # Build components graph from raw input components graph
+        self._build_components_graph()
+
+    def _build_raw_input_component_graph(self, row_container):
+        """
+        Builds the raw input component graph.
+        
+        This graph represents the relations of the components (not failures)
+        as they are read by the input (i.e. further processing is required).
+        
+        This method is not meant to be called from outside the class.
+        """
+
+        def component(row):
+            t = row.type.lower()
+            return t in ('basic', 'compound',
+                         'group') and not is_template_def(row)
+
         # Build raw input graph
         self._raw_input_graph = nx.DiGraph(
             filename=RAW_INPUT_GRAPH_FILENAME, **IR_GRAPH_ATTRIBUTES)
@@ -65,7 +98,7 @@ class IRContainer(object):
         # -- Form the graph by adding edges, nodes will be added automatically
         [
             rig.add_edge(row.parent, row.name)
-            for row in row_container.component_list if not is_template_def(row)
+            for row in row_container.component_list if component(row)
         ]
         # -- Keep name as a separate attribute because the ID will change later
         nx.set_node_attributes(rig, 'basename', {n: n for n in rig})
@@ -73,12 +106,14 @@ class IRContainer(object):
         if not nx.is_directed_acyclic_graph(self._raw_input_graph):
             _logger.error('Input model contains a component cycle')
             raise TranslatorError('Input model contains a component cycle')
-        # Build components graph from raw input graph
-        self._build_components_graph()
 
     def _build_components_graph(self):
         """
-        Given the raw input graph, builds the components graph.
+        Given the raw input components graph (found in self),
+        builds the components graph.
+        
+        This method has to be called after _build_raw_input_component_graph.
+        This method is not meant to be called from outside the class.
         """
 
         def relabel(label, node):
