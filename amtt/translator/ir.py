@@ -7,6 +7,7 @@ import os
 import logging
 import networkx as nx
 from collections import OrderedDict
+from copy import copy
 
 from amtt.errors import TranslatorError
 from .entities import SystemElement, ElementLogic
@@ -259,7 +260,9 @@ class IRContainer(object):
         for u, v in nx.bfs_edges(g, 'ROOT'):
             ub = basename(u)
             vb = basename(v)
-            g.node[v]['obj'] = self._components_index[(vb, ub)]
+            obj = copy(self._components_index[(vb, ub)])
+            obj.name = v
+            g.node[v]['obj'] = obj
 
     def export_graphs(self, output_dir):
         """
