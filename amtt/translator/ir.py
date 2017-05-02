@@ -130,10 +130,10 @@ class IRContainer(object):
         This method is not meant to be called from outside the class.
         """
 
-        def relabel(label, node):
+        def relabel(old_label, node):
             """
-            Relabels label to include the base name of node as the last token
-            of its prefix.
+            Relabels old_label to include the base name of node as the last
+            token of its prefix.
             
             The label and node tokens are considered to be separated by dots.
             
@@ -144,7 +144,7 @@ class IRContainer(object):
             label contains n+1 tokens.
             """
             node_tokens = node.split('.')
-            tokens = label.split('.')
+            tokens = old_label.split('.')
             tokens.insert(-1, str(node_tokens[-1]))
             return '.'.join(tokens)
 
