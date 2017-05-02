@@ -100,8 +100,6 @@ class IRContainer(object):
             rig.add_edge(row.parent, row.name)
             for row in row_container.component_list if component(row)
         ]
-        # -- Keep name as a separate attribute because the ID will change later
-        nx.set_node_attributes(rig, 'basename', {n: n for n in rig})
         # Check if raw input graph contains cycles
         if not nx.is_directed_acyclic_graph(self._raw_input_graph):
             _logger.error('Input model contains a component cycle')
