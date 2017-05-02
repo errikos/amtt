@@ -9,6 +9,7 @@ import networkx as nx
 from collections import OrderedDict
 
 from amtt.errors import TranslatorError
+from .entities import SystemElement
 
 _logger = logging.getLogger(__name__)
 
@@ -27,7 +28,7 @@ FAILURES_GRAPH_FILENAME = 'failures.png'
 
 def is_template_def(row):
     """
-    Returns whether a component row is a template definition.
+    Returns whether a row is a template (component) definition.
     
     A component row is a template definition when his Parent is
     defined as a * (star wildcard).
@@ -73,6 +74,7 @@ class IRContainer(object):
     def load_from_rows(self, row_container):
         """Loads the model from the provided row container."""
         _logger.info('Importing model from rows')
+        self._build_indexes(row_container)
         self._build_graphs(row_container)
         self._loaded = True
 
@@ -83,6 +85,20 @@ class IRContainer(object):
         This method is not meant to be called from outside the class.
         """
         _logger.info('Building indexes')
+        for row in row_container.component_list:
+            # Create a SystemElement object for row
+            element = SystemElement(
+                type=row.type,
+                name=row.name,
+                parent=row.parent,
+                code=row.code,
+                instances=row.instances)
+            # If row represents a component, add it to components index
+            if is_component(row) and not is_template_def(row):
+                self._components_index[(row.name, row.parent)] = element
+            # Otherwise, add it to failures index
+            elif is_failure(row):
+                self._failures_index[row.name] = element
 
     def _build_graphs(self, row_container):
         """
@@ -167,7 +183,7 @@ class IRContainer(object):
                     # Clone the sub-graph which has v as its root
                     sub_graph = g.subgraph(
                         nbunch=[v] + list(nx.dfs_preorder_nodes(g, v)))
-                    # Remove the sub-graph edges from the graph
+                    # Remove the sub-graph nodes and edges from the graph
                     g.remove_nodes_from(sub_graph.nodes_iter())
                     # For each predecessor, do the following:
                     for p in predecessors:
