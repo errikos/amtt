@@ -343,10 +343,9 @@ class _CompoundBlock(object):
                         ig.add_node(b2.id, obj=b2)
                         ig.add_edge(b1.id, b2.id)
             elif logic in ('or', 'active'):
-                vote_val = None if logic == 'or' else logic.voting
+                vote_val = None if logic == 'or' else int(logic.voting)
                 node_in = _RbdNode('{}.{}'.format(self.name, 'In'), None)
-                node_out = _RbdNode('{}.{}'.format(self.name, 'Out'),
-                                    int(vote_val))
+                node_out = _RbdNode('{}.{}'.format(self.name, 'Out'), vote_val)
                 ig.add_node(node_in.id, obj=node_in)
                 ig.add_node(node_out.id, obj=node_out)
                 for b in enumerate_blocks(root):
