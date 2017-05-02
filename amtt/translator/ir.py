@@ -9,7 +9,7 @@ import networkx as nx
 from collections import OrderedDict
 
 from amtt.errors import TranslatorError
-from .entities import SystemElement
+from .entities import SystemElement, ElementLogic
 
 _logger = logging.getLogger(__name__)
 
@@ -111,6 +111,10 @@ class IRContainer(object):
         self._build_raw_input_component_graph(row_container)
         # Build components graph from raw input components graph
         self._build_components_graph()
+        # Build failures graph
+        self._build_failures_graph()
+        # Assign objects to graph nodes
+        self._assign_objects()
 
     def _build_raw_input_component_graph(self, row_container):
         """
@@ -202,6 +206,47 @@ class IRContainer(object):
         # save g as components graph
         g.graph['filename'] = COMPONENT_GRAPH_FILENAME
         self._components_graph = g
+
+    def _build_failures_graph(self):
+        """
+        Builds the failures graph.
+        """
+        g = nx.DiGraph(filename=FAILURES_GRAPH_FILENAME, **IR_GRAPH_ATTRIBUTES)
+        # Construct the graph
+        for fname, element in self._failures_index.items():
+            parent_id = element.parent
+            if element.parent in self._failures_index:
+                parent_id = '{}_{}'.format(
+                    self._failures_index[parent_id].type, parent_id)
+            g.add_edge(parent_id, element.id)
+        # Save g as failures graph
+        self._failures_graph = g
+
+    def _assign_objects(self):
+        """
+        Assigns to each node of the graphs (components, failures)
+        the appropriate SystemElement and ElementLogic objects.
+
+        These objects are then used by the exporter.
+        """
+
+        def basename(node):
+            """
+            Given a component graph node, returns its basename.
+            """
+            tokens = node.split('.')
+            return tokens[-1]
+
+        g = self._components_graph
+        # Assign object for ROOT node
+        ro = SystemElement('Compound', 'ROOT', None, 'ROOT', 1)
+        ro.logic = ElementLogic('ROOT')
+        g.node['ROOT']['obj'] = ro
+        # Assign objects for the rest of nodes
+        for u, v in nx.bfs_edges(g, 'ROOT'):
+            ub = basename(u)
+            vb = basename(v)
+            g.node[v]['obj'] = self._components_index[(vb, ub)]
 
     def export_graphs(self, output_dir):
         """
