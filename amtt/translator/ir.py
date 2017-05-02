@@ -85,20 +85,33 @@ class IRContainer(object):
         This method is not meant to be called from outside the class.
         """
         _logger.info('Building indexes')
+        # Fill index by creating and associating the appropriate objects
         for row in row_container.component_list:
-            # Create a SystemElement object for row
+            # -- create a SystemElement object for row
             element = SystemElement(
                 type=row.type,
                 name=row.name,
                 parent=row.parent,
                 code=row.code,
                 instances=row.instances)
-            # If row represents a component, add it to components index
+            # -- if row represents a component, add it to components index
             if is_component(row) and not is_template_def(row):
                 self._components_index[(row.name, row.parent)] = element
-            # Otherwise, add it to failures index
+            # -- otherwise, add it to failures index
             elif is_failure(row):
                 self._failures_index[row.name] = element
+        # Assign logic to index objects
+        for row in row_container.logic_list:
+            logic = ElementLogic(row.logic)  # Create a logic object
+            if row.type.lower() == 'inherited':
+                # -- logic entry refers to component
+                for name, parent in self._components_index:
+                    # -- assign logic to all objects with name == row.component
+                    if name == row.component:
+                        self._components_index[(name, parent)].logic = logic
+            else:
+                # -- logic entry refers to failure
+                self._failures_index[row.component].logic = logic
 
     def _build_graphs(self, row_container):
         """
