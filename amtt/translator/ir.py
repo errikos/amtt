@@ -35,6 +35,26 @@ def is_template_def(row):
     return row.parent == '*'
 
 
+def is_component(row):
+    """
+    Returns whether a row is a component definition.
+
+    A row is a component definition if its type is Basic, Compound or Group.
+    """
+    t = row.type.lower()
+    return t in ('basic', 'compound', 'group')
+
+
+def is_failure(row):
+    """
+    Returns whether a row is a failure definition.
+
+    A row is a failure definition if its type is FailureNode or FailureEvent.
+    """
+    t = row.type.lower()
+    return t in ('failurenode', 'failureevent')
+
+
 class IRContainer(object):
     """
     Class modelling the in-memory structures container.
@@ -86,11 +106,6 @@ class IRContainer(object):
         This method is not meant to be called from outside the class.
         """
 
-        def component(row):
-            t = row.type.lower()
-            return t in ('basic', 'compound',
-                         'group') and not is_template_def(row)
-
         # Build raw input graph
         self._raw_input_graph = nx.DiGraph(
             filename=RAW_INPUT_GRAPH_FILENAME, **IR_GRAPH_ATTRIBUTES)
@@ -98,7 +113,8 @@ class IRContainer(object):
         # -- Form the graph by adding edges, nodes will be added automatically
         [
             rig.add_edge(row.parent, row.name)
-            for row in row_container.component_list if component(row)
+            for row in row_container.component_list
+            if is_component(row) and not is_template_def(row)
         ]
         # Check if raw input graph contains cycles
         if not nx.is_directed_acyclic_graph(self._raw_input_graph):
