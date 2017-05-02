@@ -13,13 +13,13 @@ class SystemElement(object):
     Class modelling a system element.
     """
 
-    def __init__(self, type, name, code, instances):
+    def __init__(self, type, name, parent, code, instances):
         self._type = type
         self._name = name
         self._code = code
         self._instances = instances
+        self._parent = parent
         self._logic = None
-        self._parent = None
 
     def __str__(self):
         return '{}_{}'.format(self.type, self.name)
