@@ -25,7 +25,7 @@ class RbdBlockRow(object):
 
 class RbdRepeatBlockRow(object):
 
-    schema = ['Id', 'Page', 'XPosition', 'YPosition']
+    schema = ['Id', 'Page', 'ReferenceBlock', 'XPosition', 'YPosition']
 
     def __init__(self, **kwargs):
         for key in RbdRepeatBlockRow.schema:
