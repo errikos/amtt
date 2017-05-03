@@ -4,9 +4,9 @@ Exporter module for Isograph Availability Workbench.
 import logging
 
 from amtt.exporter import Exporter
-
-from amtt.exporter.isograph.excel import ExcelEmitter
+from amtt.exporter.isograph.emitter.excel import ExcelEmitter
 from amtt.exporter.isograph.rbd import Rbd
+from amtt.exporter.isograph.rows import *
 
 _logger = logging.getLogger(__name__)
 
@@ -21,8 +21,8 @@ class IsographExporter(Exporter):
         self._emitter = ExcelEmitter(translator.output_basedir)
 
     def export(self):
-        # TODO: create block diagram from input
+        # Create block diagram from input
         rbd = Rbd()
         rbd.from_ir_container(self._translator.ir_container)
-        # TODO: dump block diagram to output
+        # Dump block diagram to output
         rbd.serialize(self._emitter)

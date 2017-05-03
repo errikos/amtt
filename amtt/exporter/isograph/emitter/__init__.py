@@ -1,26 +1,21 @@
 """
-Microsoft Office Excel files emitter for Isograph.
+Emitter module/class for Isograph.
 """
 
 import os
+import abc
 import logging
-from collections import OrderedDict
 from datetime import datetime as dt
 
-import pyexcel_xls as xls
-
 from amtt.exporter.isograph.rows import *
-from amtt.exporter.isograph.rows import SCHEMA
 
 _logger = logging.getLogger(__name__)
 
 
-class ExcelEmitter(object):
+class IsographEmitter(object):
     """
-    Microsoft Office Excel emitter for Isograph.
+    Base emitter class for Isograph.
     """
-
-    sheet_attributes = ['_blocks', '_repeat_blocks', '_nodes', '_connections']
 
     def __init__(self, output_dir):
         # Setup output path
@@ -31,17 +26,12 @@ class ExcelEmitter(object):
         self._output_path = os.path.join(basedir, output_path)
         _logger.info('Output path is: ' + os.path.abspath(self.output_path))
         # Initialize output row containers.
-        # First row is the header, which is needed to automate
-        # the column mappings when importing to Isograph.
-        self._blocks = [RbdBlockRow.header()]
-        self._repeat_blocks = [RbdRepeatBlockRow.header()]
-        self._nodes = [RbdNodeRow.header()]
-        self._connections = [RbdConnectionRow.header()]
+        self._blocks = []
+        self._repeat_blocks = []
+        self._nodes = []
+        self._connections = []
         # Initialize output identifier containers.
         self._ids = {}
-        # self._block_ids = {}
-        # self._repeat_block_ids = {}
-        # self._node_ids = {}
         # Initialize output identifier counters.
         self._next_block_id = 0
         self._next_repeat_block_id = 0
@@ -63,7 +53,6 @@ class ExcelEmitter(object):
 
     def add_connection(self, identifier, page, src_id, src_type, dst_id,
                        dst_type):
-        # TODO
         src_index = self._ids[src_id]
         dst_index = self._ids[dst_id]
         connection = RbdConnectionRow(
@@ -76,13 +65,10 @@ class ExcelEmitter(object):
             OutputObjectType=dst_type)
         self._connections.append(connection)
 
-    def commit(self):
-        data = OrderedDict(
-            [(sheet, [[getattr(row, k) for k in SCHEMA[sheet]]
-                      for row in getattr(self, attr)])
-             for sheet, attr in zip(SCHEMA.keys(), self.sheet_attributes)])
-        xls.save_data(self.output_path, data=data)
-
     @property
     def output_path(self):
         return self._output_path
+
+    @abc.abstractmethod
+    def commit(self):
+        raise NotImplementedError('IsographEmitter should be sub-classed')
