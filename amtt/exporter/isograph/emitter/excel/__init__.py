@@ -38,4 +38,4 @@ class ExcelEmitter(IsographEmitter):
             [(sheet, [[getattr(row, k) for k in SCHEMA[sheet]]
                       for row in getattr(self, attr)])
              for sheet, attr in zip(SCHEMA.keys(), sheet_attributes)])
-        xls.save_data(self.output_path, data=data)
+        xls.save_data('.'.join((self.output_path, 'xls')), data=data)
