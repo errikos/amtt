@@ -591,6 +591,7 @@ class Rbd(object):
         if type(element) == _RbdBlock:
             emitter.add_block(**kwargs)
         else:
+            kwargs['Vote'] = element.vote_value
             emitter.add_node(**kwargs)
 
         return
