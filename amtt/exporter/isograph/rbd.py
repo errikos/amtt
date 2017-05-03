@@ -263,10 +263,10 @@ class _CompoundBlock(object):
                         _logger.debug('Will apply logic: %s, to: %s.%s',
                                       uo.logic, self.name, vo.name)
                         if uo.logic in ('or', 'active'):
-                            vote_val = None \
-                                if uo.logic == 'or' else uo.logic.voting
+                            vote_val = None if uo.logic == 'or' \
+                                else int(uo.logic.voting)
                             node_out = _RbdNode('{}.Out'.format(self.name),
-                                                int(vote_val))
+                                                vote_val)
                             d.add_node(node_out.id, obj=node_out)
                             for n in filter(
                                     lambda x: get_node_object(d, x).name == vo.name,
