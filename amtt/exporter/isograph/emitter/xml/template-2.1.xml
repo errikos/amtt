@@ -1,0 +1,83 @@
+<?xml version="1.0" standalone="yes"?>
+<XMLExport>
+  <xs:schema id="XMLExport" xmlns="" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xs:element name="XMLExport" msdata:IsDataSet="true" msdata:UseCurrentLocale="true">
+      <xs:complexType>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element name="Project">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="Id" type="xs:string" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="RbdBlocks">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="Id" type="xs:string" />
+                <xs:element name="Page" type="xs:string" minOccurs="0" />
+                <xs:element name="XPosition" type="xs:double" minOccurs="0" />
+                <xs:element name="YPosition" type="xs:double" minOccurs="0" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="RbdConnections">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="Id" type="xs:string" />
+                <xs:element name="Page" type="xs:string" minOccurs="0" />
+                <xs:element name="Type" type="xs:string" minOccurs="0" />
+                <xs:element name="InputObjectIndex" type="xs:int" minOccurs="0" />
+                <xs:element name="InputObjectType" type="xs:string" minOccurs="0" />
+                <xs:element name="OutputObjectIndex" type="xs:int" minOccurs="0" />
+                <xs:element name="OutputObjectType" type="xs:string" minOccurs="0" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="RbdNodes">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="Id" type="xs:string" />
+                <xs:element name="Page" type="xs:string" minOccurs="0" />
+                <xs:element name="Vote" type="xs:int" minOccurs="0" />
+                <xs:element name="XPosition" type="xs:double" minOccurs="0" />
+                <xs:element name="YPosition" type="xs:double" minOccurs="0" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="RbdRepeatBlocks">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="Id" type="xs:string" />
+                <xs:element name="Page" type="xs:string" minOccurs="0" />
+                <xs:element name="ReferenceBlock" type="xs:string" minOccurs="0" />
+                <xs:element name="XPosition" type="xs:double" minOccurs="0" />
+                <xs:element name="YPosition" type="xs:double" minOccurs="0" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+      <xs:unique name="Constraint1" msdata:PrimaryKey="true">
+        <xs:selector xpath=".//Project" />
+        <xs:field xpath="Id" />
+      </xs:unique>
+      <xs:unique name="RbdBlocks_Constraint1" msdata:ConstraintName="Constraint1" msdata:PrimaryKey="true">
+        <xs:selector xpath=".//RbdBlocks" />
+        <xs:field xpath="Id" />
+      </xs:unique>
+      <xs:unique name="RbdConnections_Constraint1" msdata:ConstraintName="Constraint1" msdata:PrimaryKey="true">
+        <xs:selector xpath=".//RbdConnections" />
+        <xs:field xpath="Id" />
+      </xs:unique>
+      <xs:unique name="RbdNodes_Constraint1" msdata:ConstraintName="Constraint1" msdata:PrimaryKey="true">
+        <xs:selector xpath=".//RbdNodes" />
+        <xs:field xpath="Id" />
+      </xs:unique>
+      <xs:unique name="RbdRepeatBlocks_Constraint1" msdata:ConstraintName="Constraint1" msdata:PrimaryKey="true">
+        <xs:selector xpath=".//RbdRepeatBlocks" />
+        <xs:field xpath="Id" />
+      </xs:unique>
+    </xs:element>
+  </xs:schema>
+</XMLExport>
