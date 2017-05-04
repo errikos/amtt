@@ -60,6 +60,17 @@ class RowsContainer(object):
         self._logic.append(LogicRow(**kwargs))
 
     @property
+    def contains_templates(self):
+        """Returns True if the container contains template components."""
+        try:
+            # At least one template component
+            next(filter(lambda x: x.parent == '*', self.component_list))
+            return True
+        except StopIteration:
+            # Not a single template component
+            return False
+
+    @property
     def component_list(self):
         return self._components
 
