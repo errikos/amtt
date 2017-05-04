@@ -43,6 +43,8 @@ class BuildStandaloneExeCommand(distutils.cmd.Command):
             '  --onefile',
             '  --add-data amtt/ui/icon64x64.png{sep}amtt/ui'.format(sep=sep),
             '  --add-data amtt/ui/icon64x64.gif{sep}amtt/ui'.format(sep=sep),
+            '  --add-data amtt/exporter/isograph/emitter/xml/template-2.1.xml'
+            '{sep}amtt/exporter/isograph/emitter/xml'.format(sep=sep),
             '  amtt/main.py',
             '  -i resources/icon.ico',
             '  -n amtt_{plat}'.format(plat=sys.platform),
@@ -123,6 +125,7 @@ setup(
     # have to be included in MANIFEST.in as well.
     package_data={
         'amtt.ui': ['icon64x64.png', 'icon64x64.gif'],
+        'amtt.exporter.isograph.emitter.xml': ['template-2.1.xml'],
     },
 
     # List additional groups of dependencies here (e.g. documentation
