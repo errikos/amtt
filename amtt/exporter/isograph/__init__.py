@@ -25,18 +25,32 @@ class IsographExporter(Exporter):
 
     @staticmethod
     def normalize_block_names(ir_container):
+        """
+        Isograph imposes a 40 character limit for the component names.
+        In case the model uses template components, there is a big chance that
+        the names will grow very big in length. Therefore, we store the
+        base name in the description field and assign a unique integer (ID)
+        as the components name.
+        """
         g = ir_container.component_graph
         if ir_container.uses_templates:
+            _logger.info('Template usage detected:')
+            _logger.info(' * Normalizing component names for Isograph')
+            # Create relabeling mapping.
+            # Each component name will be replaced with a number (ID).
             relabel_mapping = {n: c for n, c in zip(g.nodes_iter(), count(1))}
             del relabel_mapping['ROOT']  # We don't want to relabel ROOT
-            # copy=False means "relabel in-place"
+            # Relabel and rename components graph
+            # -- copy=False means "relabel in-place"
             nx.relabel_nodes(g, relabel_mapping, copy=False)
             for u, v in nx.bfs_edges(g, 'ROOT'):
-                vo = g.node[v]['obj']  # Get a hold of the associated object
-                # Set base name as description
+                # -- get a hold of the associated object
+                vo = g.node[v]['obj']
+                # -- set base name as description
                 vo.description = component_basename(vo.name)
-                # Set ID number as name
+                # -- set ID number as name
                 vo.name = v
+            # Note: No need to relabel or rename failures graph
 
     def export(self):
         # Normalize block names, if necessary

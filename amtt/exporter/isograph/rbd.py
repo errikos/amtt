@@ -109,7 +109,9 @@ class _CompoundBlock(object):
         def look_for_hint(n):
             r = next(filter(lambda x: f.in_degree(x) == 0, f.nodes_iter()))
             for u, v in nx.dfs_edges(f, r):
-                if get_node_object(g, n).name == get_node_object(f, v).name:
+                no = get_node_object(g, n)
+                to_compare = no.description if no.description else no.name
+                if to_compare == get_node_object(f, v).name:
                     logic = get_node_object(f, u).logic
                     if logic in ('or', 'active'):
                         g.node[n].update(hint=Layout.parallel)
@@ -530,10 +532,13 @@ class Rbd(object):
             # For each compound element, create the internal graph.
             ndo = get_node_object(g, n)
             if ndo.is_type('compound'):
-                _logger.debug('Constructing internal graph for: %s', ndo.name)
+                _logger.debug('Constructing internal graph for: %s%s',
+                              ndo.name, ' (' + ndo.description + ')'
+                              if ndo.description else '')
                 block = _CompoundBlock(ndo.name, ndo.code)
                 node_subgraph = extract_subgraph(n)
-                failures_subgraph = extract_failures_subgraph(n)
+                failures_subgraph = extract_failures_subgraph(
+                    ndo.description if ndo.description else n)
                 block.generate_internal_graph(node_subgraph, failures_subgraph)
                 # export_graph_to_png(block.internal_graph, ndo.name)
                 self._compound_block_index[block.name] = block
