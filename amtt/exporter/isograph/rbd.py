@@ -478,6 +478,7 @@ class Rbd(object):
         """
         Constructs the RBD graph from the IR container provided.
         """
+        _logger.info('Creating Isograph RBD')
         component_graph = ir_container.component_graph
         failures_graph = ir_container.failures_graph
         self._construct_compound_blocks(component_graph, failures_graph)
@@ -528,6 +529,7 @@ class Rbd(object):
 
     def serialize(self, emitter):
         """Serializes the RBD by making use of the given emitter object."""
+        _logger.info('Serializing components')
         name, element = next(iter(self._compound_block_index.items()))
         blocks_stack = deque([(element, deque(), None)])
         while blocks_stack:
