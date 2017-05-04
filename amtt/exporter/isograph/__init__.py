@@ -29,6 +29,7 @@ class IsographExporter(Exporter):
         if ir_container.uses_templates:
             relabel_mapping = {n: c for n, c in zip(g.nodes_iter(), count(1))}
             del relabel_mapping['ROOT']  # We don't want to relabel ROOT
+            # copy=False means "relabel in-place"
             nx.relabel_nodes(g, relabel_mapping, copy=False)
             for u, v in nx.bfs_edges(g, 'ROOT'):
                 vo = g.node[v]['obj']  # Get a hold of the associated object
