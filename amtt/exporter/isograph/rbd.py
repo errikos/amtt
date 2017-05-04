@@ -131,7 +131,7 @@ class _CompoundBlock(object):
                 else:  # Invalid logic
                     _logger.error('Leaf node %s has an invalid logic', o.name)
             else:
-                b = _RbdBlock(**kwargs, description=o.description)
+                b = _RbdBlock(**kwargs)
                 diagram.add_node(b.id, obj=b)
             g.node[leaf].update(diagram=diagram)
 
@@ -507,7 +507,8 @@ class Rbd(object):
         def extract_failures_subgraph(node):
             for cc in nx.weakly_connected_component_subgraphs(f):
                 root = nx.topological_sort(cc)[0]
-                if root == node:
+                _, rkey = root.split('_')
+                if rkey == node:
                     return cc
 
         root = nx.topological_sort(g)[0]
