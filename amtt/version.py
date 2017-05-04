@@ -1,2 +1,2 @@
 # version should have the following format: major.minor.release
-__version__ = '0.2.dev1'
+__version__ = '0.3.0'
