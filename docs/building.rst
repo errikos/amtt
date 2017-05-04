@@ -24,6 +24,17 @@ Download and install Python
 * For **Linux**, Python should be available via your package manager. You can also refer to the |PyEnv| project, which allows you to install any Python version to any distribution locally (as well as the system meets the pyenv dependencies).
 * For **MacOS**, you can install Python via the |PythonInstallerMac|, via |Homebrew| or via the |PyEnv| project.
 
+Extra requirements for Windows
+""""""""""""""""""""""""""""""
+
+In order to build on Windows, you will also need "Microsoft Visual C++ 2010 Redistributable Package". Some links are provided below for your convenience (if they don't work, Google should do the trick).
+
+Choose the appropriate version for your **Python installation**. If you are not sure, just install both:
+
+* x86 (32-bit Python): https://www.microsoft.com/en-us/download/details.aspx?id=5555
+
+* x64 (64-bit Python): https://www.microsoft.com/en-us/download/details.aspx?id=14632
+
 Optional: Use a Python virtual environment
 """"""""""""""""""""""""""""""""""""""""""
 
