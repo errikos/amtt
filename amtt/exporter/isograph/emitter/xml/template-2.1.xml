@@ -18,6 +18,7 @@
                 <xs:element name="Page" type="xs:string" minOccurs="0" />
                 <xs:element name="XPosition" type="xs:double" minOccurs="0" />
                 <xs:element name="YPosition" type="xs:double" minOccurs="0" />
+                <xs:element name="Description" type="xs:string" minOccurs="0" />
               </xs:sequence>
             </xs:complexType>
           </xs:element>

@@ -12,7 +12,7 @@ _logger = logging.getLogger(__name__)
 
 class RbdBlockRow(object):
 
-    schema = ['Id', 'Page', 'XPosition', 'YPosition']
+    schema = ['Id', 'Page', 'XPosition', 'YPosition', 'Description']
 
     def __init__(self, **kwargs):
         for key in RbdBlockRow.schema:
