@@ -9,7 +9,7 @@ Release **packages** (that is, archives with pre-built, ready to run executables
 
 * If you have downloaded the Windows executable, run ``amtt_win32.exe``.
 * If you have downloaded the Linux executable, run ``amtt_linux``.
-* If you have downloaded the MacOS app, run ``amtt_mac.app``.
+* If you have downloaded the MacOS executable, run ``amtt_darwin``.
 
 .. |Releases| raw:: html
 
