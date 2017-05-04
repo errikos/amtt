@@ -57,6 +57,28 @@ def is_failure(row):
     return t in ('failurenode', 'failureevent')
 
 
+def component_basename(node):
+    """
+    Given a component graph node, returns its basename.
+    """
+    tokens = node.split('.')
+    return tokens[-1]
+
+
+def check_templates(row_container):
+    """
+    Checks whether the model makes use of any template components.        
+    """
+    clist = row_container.component_list
+    if row_container.contains_templates:
+        templates = set(
+            c.name for c in filter(lambda x: is_template_def(x), clist))
+        non_templates = set(
+            c.name for c in filter(lambda x: not is_template_def(x), clist))
+        return False if templates.isdisjoint(non_templates) else True
+    return False
+
+
 class IRContainer(object):
     """
     Class modelling the in-memory structures container.
@@ -71,10 +93,13 @@ class IRContainer(object):
         self._raw_input_graph = None
         self._components_graph = None
         self._failures_graph = None
+        # Whether the model uses template components
+        self._uses_templates = False
 
     def load_from_rows(self, row_container):
         """Loads the model from the provided row container."""
         _logger.info('Importing model from rows')
+        self._uses_templates = check_templates(row_container)
         self._build_indexes(row_container)
         self._build_graphs(row_container)
         self._loaded = True
@@ -244,13 +269,6 @@ class IRContainer(object):
         These objects are then used by the exporter.
         """
 
-        def basename(node):
-            """
-            Given a component graph node, returns its basename.
-            """
-            tokens = node.split('.')
-            return tokens[-1]
-
         g = self._components_graph
         # Assign object for ROOT node
         ro = SystemElement('Compound', 'ROOT', None, 'ROOT', 1)
@@ -258,8 +276,8 @@ class IRContainer(object):
         g.node['ROOT']['obj'] = ro
         # Assign objects for the rest of nodes
         for u, v in nx.bfs_edges(g, 'ROOT'):
-            ub = basename(u)
-            vb = basename(v)
+            ub = component_basename(u)
+            vb = component_basename(v)
             obj = copy(self._components_index[(vb, ub)])
             obj.name = v
             g.node[v]['obj'] = obj
@@ -294,3 +312,7 @@ class IRContainer(object):
     @property
     def failures_graph(self):
         return self._failures_graph
+
+    @property
+    def uses_templates(self):
+        return self._uses_templates
