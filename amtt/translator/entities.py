@@ -13,12 +13,13 @@ class SystemElement(object):
     Class modelling a system element.
     """
 
-    def __init__(self, type, name, parent, code, instances):
+    def __init__(self, type, name, parent, code, instances, description=''):
         self._type = type
         self._name = name
         self._code = code
         self._instances = instances
         self._parent = parent
+        self._description = description
         self._logic = None
 
     def __str__(self):
@@ -70,6 +71,14 @@ class SystemElement(object):
     @parent.setter
     def parent(self, parent):
         self._parent = parent
+
+    @property
+    def description(self):
+        return self._description
+
+    @description.setter
+    def description(self, description):
+        self._description = description
 
 
 class ElementLogic(object):
