@@ -5,6 +5,7 @@ Can be considered as the Intermediate Representation (IR) of the translator.
 
 import os
 import logging
+import itertools
 import networkx as nx
 from collections import OrderedDict
 from copy import copy
@@ -87,8 +88,8 @@ class IRContainer(object):
     def __init__(self):
         self._loaded = False
         # Initialize components and failures index
-        self._components_index = OrderedDict()
-        self._failures_index = OrderedDict()
+        self._components_index = OrderedDict()  # (name, parent) -> element
+        self._failures_index = OrderedDict()  # name -> element
         # Declare graph structures
         self._raw_input_graph = None
         self._components_graph = None
@@ -250,16 +251,43 @@ class IRContainer(object):
         """
         Builds the failures graph.
         """
-        g = nx.DiGraph(filename=FAILURES_GRAPH_FILENAME, **IR_GRAPH_ATTRIBUTES)
+
+        def filter_parent(x):
+            (name, parent), elem = x
+            return name == element.parent
+
+        f = nx.DiGraph(filename=FAILURES_GRAPH_FILENAME, **IR_GRAPH_ATTRIBUTES)
         # Construct the graph
         for fname, element in self._failures_index.items():
+            ftype = element.type
             parent_id = element.parent
-            if element.parent in self._failures_index:
-                parent_id = '{}_{}'.format(
-                    self._failures_index[parent_id].type, parent_id)
-            g.add_edge(parent_id, element.id)
+            if ftype.lower() == 'failurenode':
+                # Look for parent in components index
+                try:
+                    _, elem = next(
+                        filter(filter_parent, self._components_index.items()))
+                    parent_type = elem.type
+                except StopIteration:
+                    # Parent not found in component index, as it should
+                    _logger.error('Invalid parent name for FailureNode "%s"',
+                                  fname)
+                    raise TranslatorError(
+                        "Error while building Failures graph. "
+                        "Check log for details.")
+            elif ftype.lower() == 'failureevent':
+                # Look for parent in failures index
+                if parent_id not in self._failures_index:
+                    # Parent not found in failures index, as it should
+                    _logger.error('Invalid parent name for FailureEvent "%s"',
+                                  fname)
+                    raise TranslatorError(
+                        "Error while building Failures graph. "
+                        "Check log for details.")
+                parent_type = self._failures_index[parent_id].type
+            parent_id = '{}_{}'.format(parent_type, parent_id)
+            f.add_edge(parent_id, element.id)
         # Save g as failures graph
-        self._failures_graph = g
+        self._failures_graph = f
 
     def _assign_objects(self):
         """
@@ -268,19 +296,29 @@ class IRContainer(object):
 
         These objects are then used by the exporter.
         """
-
+        # Assign objects to components graph
         g = self._components_graph
-        # Assign object for ROOT node
+        # -- assign object for ROOT node
         ro = SystemElement('Compound', 'ROOT', None, 'ROOT', 1)
         ro.logic = ElementLogic('ROOT')
         g.node['ROOT']['obj'] = ro
-        # Assign objects for the rest of nodes
+        # -- assign objects for the rest of nodes
         for u, v in nx.bfs_edges(g, 'ROOT'):
             ub = component_basename(u)
             vb = component_basename(v)
             obj = copy(self._components_index[(vb, ub)])
-            obj.name = v
+            obj.name = v  # Replace base name with fully qualified name
             g.node[v]['obj'] = obj
+        # Assign objects to failures graph
+        f = self._failures_graph
+        # Failures graph is not a connected graph, but rather it has a
+        # connected component for the failures of each system component.
+        # -- for each root node in failures graph
+        for n in filter(lambda x: f.in_degree(x) == 0, f.nodes_iter()):
+            # -- root is a system component, no need to assign an object
+            for u, v in nx.bfs_edges(f, n):
+                _, idx_key = v.split('_')
+                f.node[v]['obj'] = self._failures_index[idx_key]
 
     def export_graphs(self, output_dir):
         """
