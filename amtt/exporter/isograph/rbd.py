@@ -3,6 +3,17 @@ Isograph exporter Reliability Block Diagram (RBD) module.
 
 Isograph system modelling is based in reliability block diagrams.
 Therefore, the RBD is the core component of an Isograph model.
+
+** A warning from the author **
+The following is nasty code. It looks like it has been written while an
+asteroid was visible from the window on its way plummeting to Earth and
+finishing this module before the impact was the only hope for humanity to
+survive.
+
+I bet that this module can be re-written in a better, more organized and more
+programmer (and human) friendly way. If you find yourself wasting a lot of
+time trying to fix or implement something on this module, then for your own
+well-being (and possibly also humanity's) please consider re-writing it.
 """
 
 import itertools
