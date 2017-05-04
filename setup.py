@@ -38,8 +38,9 @@ class BuildStandaloneExeCommand(distutils.cmd.Command):
     def run(self):
         """Run command."""
         sep = ';' if sys.platform == 'win32' else ':'
+        path_base = path.dirname(sys.executable)
         command = ' '.join([
-            'pyinstaller',
+            '"' + path.join(path_base, 'pyinstaller') + '"',
             '  --onefile',
             '  --add-data amtt/ui/icon64x64.png{sep}amtt/ui'.format(sep=sep),
             '  --add-data amtt/ui/icon64x64.gif{sep}amtt/ui'.format(sep=sep),
