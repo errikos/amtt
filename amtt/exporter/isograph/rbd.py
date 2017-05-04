@@ -84,12 +84,16 @@ class _CompoundBlock(object):
                 if u != root:
                     break
                 vo = get_node_object(g, v)
+                kwargs = dict(
+                    name=vo.name,
+                    code=vo.code,
+                    type='Rbd block',
+                    description=vo.description)
                 if vo.instances > 1:
                     for i in range(1, vo.instances + 1):
-                        yield _RbdBlock(
-                            vo.name, vo.code, type='Rbd block', instance=i)
+                        yield _RbdBlock(**kwargs, instance=i)
                 else:
-                    yield _RbdBlock(vo.name, vo.code, type='Rbd block')
+                    yield _RbdBlock(**kwargs)
 
         def look_for_hint(n):
             r = next(filter(lambda x: f.in_degree(x) == 0, f.nodes_iter()))
@@ -105,18 +109,20 @@ class _CompoundBlock(object):
             o = get_node_object(g, leaf)
             logic = get_node_object(g, next(nx.all_neighbors(g, leaf))).logic
             diagram = nx.DiGraph(**GRAPH_ATTRIBUTES)
+            kwargs = dict(
+                name=o.name,
+                code=o.code,
+                type='Rbd block',
+                description=o.description)
             if o.instances > 1:
                 if logic is None:
                     for i in range(1, o.instances + 1):
-                        b = _RbdBlock(
-                            o.name, o.code, type='Rbd block', instance=i)
+                        b = _RbdBlock(**kwargs, instance=i)
                         diagram.add_node(b.id, obj=b)
                 elif logic == 'and':
                     for i, j in window(range(1, o.instances + 1), 2):
-                        b1 = _RbdBlock(
-                            o.name, o.code, type='Rbd block', instance=i)
-                        b2 = _RbdBlock(
-                            o.name, o.code, type='Rbd block', instance=j)
+                        b1 = _RbdBlock(**kwargs, instance=i)
+                        b2 = _RbdBlock(**kwargs, instance=j)
                         diagram.add_node(b1.id, obj=b1)
                         diagram.add_node(b2.id, obj=b2)
                         diagram.add_edge(b1.id, b2.id)
@@ -125,7 +131,7 @@ class _CompoundBlock(object):
                 else:  # Invalid logic
                     _logger.error('Leaf node %s has an invalid logic', o.name)
             else:
-                b = _RbdBlock(o.name, o.code, type='Rbd block')
+                b = _RbdBlock(**kwargs, description=o.description)
                 diagram.add_node(b.id, obj=b)
             g.node[leaf].update(diagram=diagram)
 
@@ -384,10 +390,11 @@ class _RbdBlock(object):
     Class modelling an RBD block instance.
     """
 
-    def __init__(self, name, code, type, instance=None):
+    def __init__(self, name, code, type, description=None, instance=None):
         self._name = name
         self._code = parse_code(code)
         self._type = type
+        self._description = description
         self._instance = instance
 
     def __str__(self):
@@ -409,6 +416,10 @@ class _RbdBlock(object):
     @property
     def type(self):
         return self._type
+
+    @property
+    def description(self):
+        return self._description
 
     @property
     def instance(self):
@@ -589,6 +600,7 @@ class Rbd(object):
             'YPosition': ypos * 2,
         }
         if type(element) == _RbdBlock:
+            kwargs['Description'] = element.description
             emitter.add_block(**kwargs)
         else:
             kwargs['Vote'] = element.vote_value
