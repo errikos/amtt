@@ -56,6 +56,7 @@ There are many ways to create a Python virtual environment, depending on what yo
 
         source path/to/venv/directory/bin/activate
 
+
    * In Windows, execute activate.bat:
      ::
 
@@ -69,7 +70,7 @@ Apart from |PyEnv|, another tool that greatly simplifies virtual environment man
 Clone or download the amtt repository
 """""""""""""""""""""""""""""""""""""
 
-The ammt repository is located in GitHub: https://github.com/errikos/amtt .
+The amtt repository is located in GitHub: https://github.com/errikos/amtt .
 
 * You can clone the repository by using git::
 
@@ -98,20 +99,28 @@ Change directory, or ``cd``, to the directory containing the source code (you wi
   ``distutils`` are bundled in the standard Python distribution.
 
   1. To fetch the dependencies and build the application::
+     ::
 
-      python setup.py build
+        python setup.py build
+
 
   2. To install the application, after building::
+     ::
 
-      python setup.py install
+        python setup.py install
+
 
   3. In you encounter an error like the following::
+     ::
 
-      error: The 'pyexcel' distribution was not found and is required by amtt
+        error: The 'pyexcel' distribution was not found and is required by amtt
 
-   then execute the install command again::
 
-      python setup.py install
+     then execute the install command again::
+     ::
+
+        python setup.py install
+
 
   The above two commands will install the application in your local python distribution (the one that resembles to the executed ``python`` command) along with all the required dependencies. They will also install the application executables, which can then be called from the command line (see `Running the application`_ below for more details).
 
