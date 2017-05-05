@@ -45,9 +45,24 @@ There are many ways to create a Python virtual environment, depending on what yo
 1. Choose where you want the virtual environment to be created. Let the path to that directory be ``/home/user/path/to/venv/directory``. It is important that this is a local directory, for which you have read and write rights.
 2. Create the virtual environment::
 
-    python -m venv /home/user/path/to/venv/directory
+    python -m venv path/to/venv/directory
 
-   The above command adds all the required executables (``python``, ``pip``, etc.) in the ``bin`` directory within the virtual environment directory. From now on, whenever you need to execute ``python``, ``pip`` or any other executable, you can execute ``/home/user/path/to/venv/directory/bin/python``, ``/home/user/path/to/venv/directory/bin/pip``, etc. respectively.
+   The above command adds all the required executables (``python``, ``pip``, etc.) in the ``bin`` directory within the virtual environment directory. From now on, whenever you need to execute ``python``, ``pip`` or any other executable, you can execute ``path/to/venv/directory/bin/python``, ``path/to/venv/directory/bin/pip``, etc. respectively.
+
+   In order to make your life easier, you can "activate" the virtual environment so that the Python-related commands executed from a shell point to the executables within the virtual environment directory. To do this, you have to "source" the activate script residing within the binaries directory of the virtual environment.
+
+   * In Unix systems (Linux, MacOS, etc.), source the activate script:
+     ::
+
+        source path/to/venv/directory/bin/activate
+
+   * In Windows, execute activate.bat:
+     ::
+
+        path\to\venv\directory\Scripts\activate.bat
+
+
+     You will have to do the above every time you open a new terminal or cmd instance.
 
 Apart from |PyEnv|, another tool that greatly simplifies virtual environment management is virtualenvwrapper. See |virtualenvwrapper| for installation and usage details (**attention if using Windows:** the installation procedure is different, check the aforementioned link).
 
