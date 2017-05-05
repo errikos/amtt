@@ -40,7 +40,13 @@ Optional: Use a Python virtual environment
 
 This step is optional, but highly recommended. A Python virtual environment allows you to create a completely isolated environment in which you can install Python packages. This approach avoids cluttering a Python installation with many packages, probably unnecessary for the system (e.g. the packages that this build procedure pulls and installs).
 
-There are many ways to create a Python virtual environment, depending on what you use. For example, |PyEnv| has build-in support for creating and managing virtual environments. Below are some generic instructions, based on the ``venv`` Python module included in the standard library (no need of any external tools).
+There are many ways to create a Python virtual environment, depending on what you use.
+
+For example, |PyEnv| has build-in support for creating and managing virtual environments. However, it is only available for Unix systems.
+
+Another tool that greatly simplifies virtual environment management is virtualenvwrapper. See |virtualenvwrapper| for installation and usage details (**attention if using Windows:** the installation procedure is different, check the aforementioned link).
+
+Below are some generic instructions, based on the ``venv`` Python module included in the standard library (no need of any external tools).
 
 1. Choose where you want the virtual environment to be created. Let the path to that directory be ``/home/user/path/to/venv/directory``. It is important that this is a local directory, for which you have read and write rights.
 2. Create the virtual environment::
@@ -64,8 +70,6 @@ There are many ways to create a Python virtual environment, depending on what yo
 
 
      You will have to do the above every time you open a new terminal or cmd instance.
-
-Apart from |PyEnv|, another tool that greatly simplifies virtual environment management is virtualenvwrapper. See |virtualenvwrapper| for installation and usage details (**attention if using Windows:** the installation procedure is different, check the aforementioned link).
 
 Clone or download the amtt repository
 """""""""""""""""""""""""""""""""""""
