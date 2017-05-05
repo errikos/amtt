@@ -23,7 +23,7 @@ here = path.abspath(path.dirname(__file__))
 class BuildStandaloneExeCommand(distutils.cmd.Command):
     """
     Custom command to build standalone executable using PyInstaller.
-    
+
     Invoke by executing:
         python setup.py build_standalone
     """
@@ -50,7 +50,8 @@ class BuildStandaloneExeCommand(distutils.cmd.Command):
             '{sep}amtt/exporter/isograph/emitter/xml'.format(sep=sep),
             '  amtt/main.py',
             '  -i resources/icon.ico',
-            '  -n amtt_{plat}-{ver}'.format(plat=sys.platform, ver=amtt_version),
+            '  -n amtt_{plat}-{ver}'.format(plat=sys.platform,
+                                            ver=amtt_version),
         ])
         self.announce('Building standalone executable with PyInstaller',
                       level=distutils.log.INFO)
