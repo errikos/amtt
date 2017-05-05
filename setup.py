@@ -14,6 +14,8 @@ import sys
 import distutils
 import subprocess
 
+from amtt.version import __version__ as amtt_version
+
 
 here = path.abspath(path.dirname(__file__))
 
@@ -48,7 +50,7 @@ class BuildStandaloneExeCommand(distutils.cmd.Command):
             '{sep}amtt/exporter/isograph/emitter/xml'.format(sep=sep),
             '  amtt/main.py',
             '  -i resources/icon.ico',
-            '  -n amtt_{plat}'.format(plat=sys.platform),
+            '  -n amtt_{plat}-{ver}'.format(plat=sys.platform, ver=amtt_version),
         ])
         self.announce('Building standalone executable with PyInstaller',
                       level=distutils.log.INFO)
@@ -65,7 +67,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.3.0',
+    version=amtt_version,
     description='Availability Modelling Translation Toolkit',
     long_description=long_description,
 
