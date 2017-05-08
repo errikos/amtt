@@ -34,15 +34,32 @@ class InputSheet(enum.Enum):
     failure_models = 3
 
 
-# The following definitions are used for schema validation
-# (see validate_schema method below).
-#
-# SCHEMAS is a dict containing members of the InputSheet enum as keys
-# and sets containing the valid columns for that table as values.
+"""
+The following definitions are used for schema validation
+(see validate_schema method below).
+
+SCHEMAS is a dict containing members of the InputSheet enum as keys
+and sets containing the valid columns for that table as values.
+"""
 SCHEMAS = {
-    InputSheet.components: {'type', 'name', 'parent', 'code', 'instances'},
-    InputSheet.logic: {'type', 'component', 'logic'},
-    InputSheet.failure_models: {},
+    InputSheet.components: {
+        'type',          # The component type (valid: compound,group,basic).
+        'name',          # The component name (ID).
+        'parent',        # The component parent (enclosing block).
+        'code',          # Component code (ID - usually shorter than name).
+        'instances',     # Number of components to define.
+        'failuremodel',  # The failure model to assign (basic components only).
+    },
+    InputSheet.logic: {
+        'type',       # The failure type (valid: inherited,failurenode).
+        'component',  # Component to assign the logic to (-> Components.Name).
+        'logic',      # Logic to assign (valid: AND,OR,ACTIVE(X,Y)).
+    },
+    InputSheet.failure_models: {
+        'failurename',   # The failure model name (ID).
+        'mttf',          # The failure model Mean Time To Failure.
+        'standbystate',  # The failure model standby state.
+    },
 }
 
 
@@ -66,10 +83,12 @@ class Loader(object):
     instantiating objects or putting data in the Keep.
     """
 
+    # Dictionary defining the input sheet/table/file namee (interpretation
+    # depends on the input type, we stick with "sheet" in the definition).
     _sheet_definitions = {
         InputSheet.components: 'Components',
         InputSheet.logic: 'Logic',
-        # InputSheet.failure_models: 'FailureModels',
+        InputSheet.failure_models: 'FailureModels',
     }
 
     @staticmethod

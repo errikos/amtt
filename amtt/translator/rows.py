@@ -29,6 +29,15 @@ class LogicRow(object):
             setattr(self, arg, kwargs[arg])
 
 
+class FailureModelRow(object):
+    """Class modelling a FailureModel entry, as read from the input (flat)."""
+
+    def __init__(self, **kwargs):
+        """Initialize FailureModelRow."""
+        for arg in SCHEMAS[InputSheet.failure_models]:
+            setattr(self, arg, kwargs[arg])
+
+
 class RowsContainer(object):
     """Container for objects as read from the input."""
 
