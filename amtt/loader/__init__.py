@@ -94,8 +94,8 @@ class Loader(object):
         if schema_def - schema:  # Columns missing from input schema => ERROR
             _logger.error('Input schema for %s is missing some columns: %s',
                           schema_type.name, schema_def - schema)
-            raise LoaderError('Schema validation for %s failed',
-                              schema_type.name)
+            raise LoaderError(
+                'Schema validation for {} failed'.format(schema_type.name))
         elif schema - schema_def:  # Input schema has extra columns => WARNING
             _logger.warning('Input schema for %s has extra columns: %s',
                             schema_type.name, schema - schema_def)
