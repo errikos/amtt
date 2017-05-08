@@ -621,8 +621,8 @@ class Rbd(object):
         kwargs = {
             'Id': '.'.join(str(x) for x in element_tokens()),
             'Page': '.'.join(str(x) for x in parent_tokens()),
-            'XPosition': xpos * 2,
-            'YPosition': ypos * 2,
+            'XPosition': xpos * 1.75,
+            'YPosition': ypos * 1.75,
         }
         if type(element) == _RbdBlock:
             kwargs['Description'] = element.description
