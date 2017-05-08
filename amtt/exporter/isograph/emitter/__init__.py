@@ -1,6 +1,4 @@
-"""
-Emitter module/class for Isograph.
-"""
+"""Emitter module/class for Isograph."""
 
 import os
 import abc
@@ -13,11 +11,10 @@ _logger = logging.getLogger(__name__)
 
 
 class IsographEmitter(object):
-    """
-    Base emitter class for Isograph.
-    """
+    """Base emitter class for Isograph."""
 
     def __init__(self, output_dir):
+        """Initialize IsographEmitter."""
         # Setup output path
         nobasedir = output_dir is None
         basedir = output_dir if not nobasedir else ''
@@ -37,21 +34,25 @@ class IsographEmitter(object):
         self._next_node_id = 0
 
     def add_block(self, **kwargs):
+        """Add an RBD block to the output."""
         self._blocks.append(RbdBlockRow(**kwargs))
         self._ids[kwargs['Id']] = self._next_block_id
         self._next_block_id += 1
 
     def add_repeat_block(self, **kwargs):
+        """Add an RBD repeat block to the output."""
         # TODO
         pass
 
     def add_node(self, **kwargs):
+        """Add an RBD node to the output."""
         self._nodes.append(RbdNodeRow(**kwargs))
         self._ids[kwargs['Id']] = self._next_node_id
         self._next_node_id += 1
 
     def add_connection(self, identifier, page, src_id, src_type, dst_id,
                        dst_type):
+        """Add an RBD connection to the output."""
         src_index = self._ids[src_id]
         dst_index = self._ids[dst_id]
         connection = RbdConnectionRow(
@@ -66,8 +67,10 @@ class IsographEmitter(object):
 
     @property
     def output_path(self):
+        """str: the output file path."""
         return self._output_path
 
     @abc.abstractmethod
     def commit(self):
+        """Commit (serialize) the model to the output file."""
         raise NotImplementedError('IsographEmitter should be sub-classed')

@@ -9,14 +9,14 @@ The currently available exporters are:
 
 
 class Exporter(object):
-    """
-    The Exporter base class. Every exporter must be a subclass of this class.
+    """The Exporter base class. Every exporter must derive from this class.
 
     A valid Exporter must implement the following methods:
         pass
 
     If an Exporter fails to implement any of the above methods, then an
     AttributeError is raised at runtime, upon method invocation.
+
     """
 
 

@@ -38,7 +38,7 @@ GRAPH_ATTRIBUTES = dict(
 
 
 def get_node_object(g, n):
-    """Returns the object associated with node n from networkx graph g"""
+    """Return the object associated with node n from networkx graph g."""
     obj = g.node[n].get('obj')
     if obj is None:
         _logger.warning('Requested an associated object from a node, however:')
@@ -47,10 +47,17 @@ def get_node_object(g, n):
 
 
 def disconnected(graph):
+    """Return whether graph is a disconnected graph."""
     return nx.number_weakly_connected_components(graph) > 1
 
 
 def find_edges(graph):
+    """Find the first and last node of graph.
+
+    graph shall be a directed graph (nx.DiGraph), be connected and have only
+    one node with in degree = 0 and only one node with out degree = 0.
+
+    """
     if disconnected(graph):
         return None, None
     else:
@@ -63,11 +70,13 @@ def find_edges(graph):
 
 class Layout(Enum):
     """Enumeration for layout hinting."""
+
     series = 1
     parallel = 2
 
 
 def parse_code(c):
+    """Parse c as a code and format to accept instance as a format argument."""
     if re.match('^[a-zA-Z0-9\-_]*\[[Xx]\][a-zA-Z0-9\-_]*$', c):
         spec = '[X]' if '[X]' in c else '[x]'
         return c.replace(spec, '{instance}')
@@ -76,9 +85,7 @@ def parse_code(c):
 
 
 class _CompoundBlock(object):
-    """
-    Class modelling an RBD block.
-    """
+    """Class modelling an RBD block."""
 
     def __init__(self, name, code):
         self._name = name
@@ -149,9 +156,9 @@ class _CompoundBlock(object):
             g.node[leaf].update(diagram=diagram)
 
         def find_deepest_group(root):
-            """
-            Starting from root, finds the deepest group in spec_graph.
-            Returns the deepest group itself, its depth and its parent.
+            """Find the deepest group in spec_graph, starting from root.
+
+            Return the deepest group itself, its depth and its parent.
             """
             node, depth, parent = None, 0, None
             for u, v in nx.dfs_edges(g, root):
@@ -233,10 +240,11 @@ class _CompoundBlock(object):
             g.remove_nodes_from(nodes_to_merge)
 
         def get_diagram_instance(diagram, instance):
-            """
-            Returns an "instance" of the given diagram.
-            In simple words, re-labels each node of the given diagram, so that
+            """Return an "instance" of the given diagram.
+
+            In simple words, re-label each node of the given diagram, so that
             they correspond to a particular instance of that diagram.
+
             A copy is returned, thus the given diagram remains untouched.
             """
             d = diagram.copy()  # Copy the current diagram
@@ -261,8 +269,9 @@ class _CompoundBlock(object):
             return d
 
         def apply_failure_logic(group):
-            """
-            Shall only be called after the grouped components have been merged.
+            """Apply the failure logic to a GROUPED component.
+
+            Called only after the grouped components have been merged.
             """
             d = g.node[group].get('diagram')
 
@@ -288,7 +297,8 @@ class _CompoundBlock(object):
                                                 vote_val)
                             d.add_node(node_out.id, obj=node_out)
                             for n in filter(
-                                    lambda x: get_node_object(d, x).name == vo.name,
+                                    lambda x:
+                                    get_node_object(d, x).name == vo.name,
                                     d.nodes_iter()):
                                 d.add_edge(n, node_out.id)
                         elif uo.logic == 'and':
@@ -399,9 +409,7 @@ class _CompoundBlock(object):
 
 
 class _RbdBlock(object):
-    """
-    Class modelling an RBD block instance.
-    """
+    """Class modelling an RBD block instance."""
 
     def __init__(self, name, code, type, description=None, instance=None):
         self._name = name
@@ -444,8 +452,9 @@ class _RbdBlock(object):
 
 
 class _RbdNode(object):
-    """
-    Class modelling an RBD node.
+    """Class modelling an RBD node.
+
+    Only for internal use in this module.
     """
 
     def __init__(self, name, vote_value=None):
@@ -480,17 +489,14 @@ class _RbdNode(object):
 
 
 class Rbd(object):
-    """
-    Class modelling the reliability block diagram (RBD).
-    """
+    """Class modelling the reliability block diagram (RBD)."""
 
     def __init__(self):
+        """Initialize Rbd."""
         self._compound_block_index = OrderedDict()
 
     def from_ir_container(self, ir_container):
-        """
-        Constructs the RBD graph from the IR container provided.
-        """
+        """Construct the RBD graph from the IR container provided."""
         _logger.info('Creating Isograph RBD')
         component_graph = ir_container.component_graph
         failures_graph = ir_container.failures_graph
@@ -544,7 +550,7 @@ class Rbd(object):
                 self._compound_block_index[block.name] = block
 
     def serialize(self, emitter):
-        """Serializes the RBD by making use of the given emitter object."""
+        """Serialize the RBD by making use of the given emitter object."""
         _logger.info('Serializing components')
         name, element = next(iter(self._compound_block_index.items()))
         blocks_stack = deque([(element, deque(), None)])
@@ -573,7 +579,7 @@ class Rbd(object):
 
     @staticmethod
     def _serialize_element(element, parent, ppath, pinstance, emitter):
-        """Serialises a single element."""
+        """Serialize a single element."""
         dot_graph = parent.internal_dot_graph
 
         def quote_if_necessary(element_id):
@@ -671,8 +677,9 @@ class Rbd(object):
                                dst.type)
 
 
-    # DEBUG
+# DEBUG
 def export_graph_to_png(g, name):
+    """Debug assistant method."""
     p = nx.drawing.nx_pydot.to_pydot(g)
     t = pydotplus.graph_from_dot_data(p.create_dot())
     t.write_png('/home/ergys/tmp/{}.png'.format(name))

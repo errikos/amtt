@@ -1,6 +1,4 @@
-"""
-Microsoft Office Excel files emitter for Isograph.
-"""
+"""Microsoft Office Excel files emitter for Isograph."""
 
 import logging
 from collections import OrderedDict
@@ -15,11 +13,10 @@ _logger = logging.getLogger(__name__)
 
 
 class ExcelEmitter(IsographEmitter):
-    """
-    Microsoft Office Excel emitter for Isograph.
-    """
+    """Microsoft Office Excel emitter for Isograph."""
 
     def __init__(self, output_dir):
+        """Initialize ExcelEmitter."""
         # Call to super-class initializer
         super().__init__(output_dir)
         # First row is the header, which is needed to automate
@@ -30,6 +27,7 @@ class ExcelEmitter(IsographEmitter):
         self._connections.append(RbdConnectionRow.header())
 
     def commit(self):
+        """Commit (serialize) the model to the output Excel file."""
         # List ExcelEmitter attributes.
         sheet_attributes = [
             '_blocks', '_repeat_blocks', '_nodes', '_connections'

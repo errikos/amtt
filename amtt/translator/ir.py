@@ -1,11 +1,10 @@
-"""
-Python module containing the intermediate in-memory structures of the model.
+"""Contains the intermediate in-memory structures of the model.
+
 Can be considered as the Intermediate Representation (IR) of the translator.
 """
 
 import os
 import logging
-import itertools
 import networkx as nx
 from collections import OrderedDict
 from copy import copy
@@ -29,9 +28,8 @@ FAILURES_GRAPH_FILENAME = 'failures.png'
 
 
 def is_template_def(row):
-    """
-    Returns whether a row is a template (component) definition.
-    
+    """Return whether a row is a template (component) definition.
+
     A component row is a template definition when his Parent is
     defined as a * (star wildcard).
     """
@@ -39,8 +37,7 @@ def is_template_def(row):
 
 
 def is_component(row):
-    """
-    Returns whether a row is a component definition.
+    """Return whether a row is a component definition.
 
     A row is a component definition if its type is Basic, Compound or Group.
     """
@@ -49,8 +46,7 @@ def is_component(row):
 
 
 def is_failure(row):
-    """
-    Returns whether a row is a failure definition.
+    """Return whether a row is a failure definition.
 
     A row is a failure definition if its type is FailureNode or FailureEvent.
     """
@@ -59,17 +55,13 @@ def is_failure(row):
 
 
 def component_basename(node):
-    """
-    Given a component graph node, returns its basename.
-    """
+    """Given a component graph node, return its basename."""
     tokens = node.split('.')
     return tokens[-1]
 
 
 def check_templates(row_container):
-    """
-    Checks whether the model makes use of any template components.        
-    """
+    """Check whether the model makes use of any template components."""
     clist = row_container.component_list
     if row_container.contains_templates:
         templates = set(
@@ -81,11 +73,10 @@ def check_templates(row_container):
 
 
 class IRContainer(object):
-    """
-    Class modelling the in-memory structures container.
-    """
+    """Class modelling the in-memory structures container."""
 
     def __init__(self):
+        """Initialize IRContainer."""
         self._loaded = False
         # Initialize components and failures index
         self._components_index = OrderedDict()  # (name, parent) -> element
@@ -98,7 +89,7 @@ class IRContainer(object):
         self._uses_templates = False
 
     def load_from_rows(self, row_container):
-        """Loads the model from the provided row container."""
+        """Load the model from the provided row container."""
         _logger.info('Importing model from rows')
         self._uses_templates = check_templates(row_container)
         self._build_indexes(row_container)
@@ -106,9 +97,8 @@ class IRContainer(object):
         self._loaded = True
 
     def _build_indexes(self, row_container):
-        """
-        Builds the necessary internal indexes.
-        
+        """Build the necessary internal indexes.
+
         This method is not meant to be called from outside the class.
         """
         _logger.info('Building indexes')
@@ -141,9 +131,8 @@ class IRContainer(object):
                 self._failures_index[row.component].logic = logic
 
     def _build_graphs(self, row_container):
-        """
-        Builds all necessary graphs.
-        
+        """Build all necessary graphs.
+
         This method is not meant to be called from outside the class.
         """
         _logger.info('Building graphs')
@@ -157,15 +146,13 @@ class IRContainer(object):
         self._assign_objects()
 
     def _build_raw_input_component_graph(self, row_container):
-        """
-        Builds the raw input component graph.
-        
+        """Build the raw input component graph.
+
         This graph represents the relations of the components (not failures)
         as they are read by the input (i.e. further processing is required).
-        
+
         This method is not meant to be called from outside the class.
         """
-
         # Build raw input graph
         self._raw_input_graph = nx.DiGraph(
             filename=RAW_INPUT_GRAPH_FILENAME, **IR_GRAPH_ATTRIBUTES)
@@ -182,23 +169,24 @@ class IRContainer(object):
             raise TranslatorError('Input model contains a component cycle')
 
     def _build_components_graph(self):
-        """
+        """Build the components graph.
+
         Given the raw input components graph (found in self),
-        builds the components graph.
-        
+        build the components graph.
+
         This method has to be called after _build_raw_input_component_graph.
         This method is not meant to be called from outside the class.
         """
-
         def relabel(old_label, node):
-            """
-            Relabels old_label to include the base name of node as the last
+            """Relabel old_label with respect to node.
+
+            Relabel old_label to include the base name of node as the last
             token of its prefix.
-            
+
             The label and node tokens are considered to be separated by dots.
-            
+
             The node base name is its last token.
-            
+
             If label contains n tokens, the prefix is considered to be the
             first n-1 tokens. Thus, s is appended to the prefix and the new
             label contains n+1 tokens.
@@ -248,10 +236,7 @@ class IRContainer(object):
         self._components_graph = g
 
     def _build_failures_graph(self):
-        """
-        Builds the failures graph.
-        """
-
+        """Build the failures graph."""
         def filter_parent(x):
             (name, parent), elem = x
             return name == element.parent
@@ -290,8 +275,9 @@ class IRContainer(object):
         self._failures_graph = f
 
     def _assign_objects(self):
-        """
-        Assigns to each node of the graphs (components, failures)
+        """Assign objects to graph nodes.
+
+        Assign to each node of the graphs (components, failures)
         the appropriate SystemElement and ElementLogic objects.
 
         These objects are then used by the exporter.
@@ -321,8 +307,9 @@ class IRContainer(object):
                 f.node[v]['obj'] = self._failures_index[idx_key]
 
     def export_graphs(self, output_dir):
-        """
-        Exports the graphs to PNG files under the <output>/graphs/ directory.
+        """Export the graphs to PNG files.
+
+        Export under the <output>/graphs/ directory.
         """
         # Issue warning if method is called without loading a model
         if not self.loaded:
@@ -341,16 +328,20 @@ class IRContainer(object):
 
     @property
     def loaded(self):
+        """boolean: whether a model is loaded into the IRContainer."""
         return self._loaded
 
     @property
     def component_graph(self):
+        """nx.DiGraph: the components graph."""
         return self._components_graph
 
     @property
     def failures_graph(self):
+        """nx.DiGraph: the failures graph."""
         return self._failures_graph
 
     @property
     def uses_templates(self):
+        """boolean: whether the model uses template components."""
         return self._uses_templates

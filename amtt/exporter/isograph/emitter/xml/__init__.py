@@ -1,6 +1,4 @@
-"""
-XML files emitter for Isograph.
-"""
+"""XML files emitter for Isograph."""
 import os
 import sys
 import logging
@@ -15,15 +13,15 @@ _logger = logging.getLogger(__name__)
 
 
 class XmlEmitter(IsographEmitter):
-    """
-    XML emitter for Isograph.
-    """
+    """XML emitter for Isograph."""
 
     def __init__(self, output_dir):
+        """Initialize XmlEmitter."""
         # Call to super-class initializer
         super().__init__(output_dir)
 
     def commit(self):
+        """Commit (serialize) the model to the output XML file."""
         # Determine the template XML file path
         if getattr(sys, 'frozen', False):  # Running from a bundle
             template_path = os.path.join(

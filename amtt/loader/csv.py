@@ -1,6 +1,4 @@
-"""
-csv Loader module
-"""
+"""Loader module for loading from CSV files."""
 
 import os
 import logging
@@ -11,18 +9,19 @@ _logger = logging.getLogger(__name__)
 
 
 def handler(args):
+    """Handle csv option in argparse."""
     return CsvLoader(args.dir_in)
 
 
 class CsvLoader(Loader):
-    """
-    Loader to load the model from CSV files.
-    """
+    """Loader to load the model from CSV files."""
 
     def __init__(self, dir_in):
+        """Initialize CsvLoader."""
         self.dir_in = dir_in
 
-    def load_new(self, container):
+    def load(self, container):
+        """Load the rows from the CSV files into the container."""
         # For each sheet is sheet definitions (here: file)
         for sheet_type, sheet_name in self.sheet_definitions_iter():
             filename = sheet_name + '.csv'

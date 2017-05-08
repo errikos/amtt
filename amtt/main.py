@@ -1,6 +1,7 @@
-#!/usr/bin/env python3
-"""
-Main entry-point
+"""Main entry-points.
+
+This file contains the program's main entry points, as well as assistive
+functions that perform argument parsing, PATH setup, tool initialisation, etc.
 """
 import argparse
 import logging

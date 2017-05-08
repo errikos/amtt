@@ -1,5 +1,8 @@
-"""
-xls (Microsoft Office 2003) Loader module
+"""Loader module for loading from Excel files.
+
+Supports both .xls (Office 2003 - old format) and .xlsx (Office 2007+)
+Excel formats.
+
 """
 
 import logging
@@ -14,6 +17,7 @@ _logger = logging.getLogger(__name__)
 
 
 def handler(args):
+    """Handle excel argparse option."""
     filename = args.excel_in
     name, ext = os.path.splitext(filename)
     if ext.lower() not in ('.xls', '.xlsx'):
@@ -22,19 +26,19 @@ def handler(args):
 
 
 class ExcelLoader(Loader):
-    """
-    Loader to load the model from XLS/XLSX files.
-    """
+    """Loader to load the model from XLS/XLSX files."""
 
     def __init__(self, file_path):
+        """Initialize ExcelLoader."""
         self._file_path = file_path
 
     @staticmethod
-    def empty(row):
+    def _empty(row):
         t = [c for c in row if c]
         return len(t) == 0
 
     def load(self, container):
+        """Load the rows from the Excel file into the container."""
         # For each sheet in sheet definitions
         for sheet_type, sheet_name in self.sheet_definitions_iter():
             # -- read sheet
@@ -46,7 +50,7 @@ class ExcelLoader(Loader):
             colnames = [x.lower() for x in rsheet.colnames]
             self.validate_schema(colnames, sheet_type)
             # -- read and store non-empty sheet rows
-            for row in filter(lambda r: not self.empty(r), rsheet.rows()):
+            for row in filter(lambda r: not self._empty(r), rsheet.rows()):
                 # -- rowdict contains column:value pairs
                 row_dict = {
                     key.lower().replace(' ', '_').strip(): Loader.strip(val)

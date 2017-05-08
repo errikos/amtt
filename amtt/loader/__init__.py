@@ -10,8 +10,8 @@ In order to define new loaders, the following steps are required:
     1. Create your loader class by subclassing the Loader class,
        as described below.
     2. If required, add a subparser in the parse_arguments function found in
-       main.py, so that you can support loader invocation from the command line.
-       Check the argparse module for details:
+       main.py, so that you can support loader invocation from the command
+       line. Check the argparse module for details:
        https://docs.python.org/3/library/argparse.html
     3. If (2) was required, then also create a handler function for the command
        line options of your loader. This function shall accept the parsed
@@ -78,15 +78,14 @@ class Loader(object):
 
     @staticmethod
     def validate_schema(schema, schema_type):
-        """
-        Schema validation method.
+        """Perform basic schema validation.
 
         Raises a LoaderError if any of the columns defined in SCHEMAS
         for schema_type is missing from from schema.
 
         If schema has more columns than its specification in SCHEMAS,
         then a warning is issued, but no Exception is raised.
-        
+
         You may override this method in your Loader class if needed,
         e.g. in order to conduct more sophisticated validation.
         """

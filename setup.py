@@ -1,7 +1,9 @@
-"""
-Availability Model Translation Toolkit (amtt)
+"""setuptools based packaging and installation module.
 
-setuptools based packaging and installation module
+Defines the project properties, as well as a special command to build a
+standalone executable, by using PyInstaller.
+
+Run with --help to see available options.
 """
 
 # Always prefer setuptools over distutils

@@ -1,6 +1,4 @@
-"""
-User interface app module.
-"""
+"""User interface app module."""
 import os
 import webbrowser
 
@@ -22,11 +20,10 @@ WINDOW_TEXT = 'Welcome to the Availability Model Translation Toolkit!\n\n' + \
 
 
 class Application(Frame):
-    """
-    Main UI class.
-    """
+    """Main UI class."""
 
     def __init__(self, parent):
+        """Initialize Application."""
         super().__init__(parent)
         self._parent = parent
         self._init_ui()
@@ -179,6 +176,7 @@ class Application(Frame):
 
     @staticmethod
     def fire(input_type, input_path, target, target_path):
+        """Start the translation process."""
         args = Namespace()
         if input_type.lower() == 'excel':
             args.excel_in = input_path
@@ -196,6 +194,7 @@ class Application(Frame):
 
 
 class AboutDialog(object):
+    """Class for the about dialog popup."""
 
     DISCLAIMER = """
 Availability Model Translation Toolkit - Version {version}
@@ -207,6 +206,7 @@ For more details, please see the bundled LICENSE or visit:
     """.format(version=version.__version__)
 
     def __init__(self, parent):
+        """Initialize AboutDialog."""
         # Create dialog and set text content
         top = self.top = Toplevel(parent)
         top.title("About")
@@ -229,6 +229,7 @@ For more details, please see the bundled LICENSE or visit:
 
 
 def run_ui():
+    """Run the user interface."""
     top = Tk()
     Application(top)
     top.mainloop()

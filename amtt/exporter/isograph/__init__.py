@@ -1,6 +1,4 @@
-"""
-Exporter module for Isograph Availability Workbench.
-"""
+"""Exporter module for Isograph Availability Workbench."""
 import logging
 import networkx as nx
 from itertools import count
@@ -9,23 +7,22 @@ from amtt.translator.ir import component_basename
 from amtt.exporter import Exporter
 from amtt.exporter.isograph.emitter.xml import XmlEmitter
 from amtt.exporter.isograph.rbd import Rbd
-from amtt.exporter.isograph.rows import *
 
 _logger = logging.getLogger(__name__)
 
 
 class IsographExporter(Exporter):
-    """
-    Exporter to export the model to Isograph.
-    """
+    """Exporter to export the model to Isograph."""
 
     def __init__(self, translator):
+        """Initialize IsographExporter."""
         self._translator = translator
         self._emitter = XmlEmitter(translator.output_basedir)
 
     @staticmethod
     def normalize_block_names(ir_container):
-        """
+        """Normalize the component (block) names.
+
         Isograph imposes a 40 character limit for the component names.
         In case the model uses template components, there is a big chance that
         the names will grow very big in length. Therefore, we store the
@@ -53,6 +50,7 @@ class IsographExporter(Exporter):
             # Note: No need to relabel or rename failures graph
 
     def export(self):
+        """Export the model to Isograph importable format."""
         # Normalize block names, if necessary
         self.normalize_block_names(self._translator.ir_container)
         # Create block diagram from input
