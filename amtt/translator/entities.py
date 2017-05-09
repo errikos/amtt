@@ -17,7 +17,8 @@ class SystemElement(object):
         self._instances = instances
         self._parent = parent
         self._description = description
-        self._logic = None
+        self._logic = None  # Only applicable to compound elements.
+        self._failure_model = None  # Only applicable to basic elements.
 
     def __str__(self):
         """Return the string representation of the object."""
@@ -86,6 +87,15 @@ class SystemElement(object):
     @description.setter
     def description(self, description):
         self._description = description
+
+    @property
+    def failure_model(self):
+        """str: the assigned failure model or None if not a basic element."""
+        return self._failure_model
+
+    @failure_model.setter
+    def failure_model(self, failure_model):
+        self._failure_model = failure_model
 
 
 class ElementLogic(object):
