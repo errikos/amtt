@@ -15,6 +15,8 @@
             <xs:complexType>
               <xs:sequence>
                 <xs:element name="Id" type="xs:string" />
+                <xs:element name="FailureModel" type="xs:string" minOccurs="0" />
+                <xs:element name="StandbyMode" type="xs:string" minOccurs="0" />
                 <xs:element name="Page" type="xs:string" minOccurs="0" />
                 <xs:element name="XPosition" type="xs:double" minOccurs="0" />
                 <xs:element name="YPosition" type="xs:double" minOccurs="0" />
@@ -54,6 +56,30 @@
                 <xs:element name="ReferenceBlock" type="xs:string" minOccurs="0" />
                 <xs:element name="XPosition" type="xs:double" minOccurs="0" />
                 <xs:element name="YPosition" type="xs:double" minOccurs="0" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="FailureModels">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="Id" type="xs:string" />
+                <xs:element name="FmMttf" type="xs:double" minOccurs="0" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="RbdBlockRuleAssignments">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="Block" type="xs:string" minOccurs="0" />
+                <xs:element name="DependentBlock" type="xs:string" minOccurs="0" />
+                <xs:element name="LoadFactor" type="xs:double" minOccurs="0" />
+                <xs:element name="LogicMode" type="xs:string" minOccurs="0" />
+                <xs:element name="MaxCapacity" type="xs:double" minOccurs="0" />
+                <xs:element name="OutOfService" type="xs:boolean" minOccurs="0" />
+                <xs:element name="Phase" type="xs:string" minOccurs="0" />
+                <xs:element name="StandbyMode" type="xs:string" minOccurs="0" />
+                <xs:element name="SubIndex" type="xs:int" minOccurs="0" />
+                <xs:element name="Type" type="xs:string" minOccurs="0" />
               </xs:sequence>
             </xs:complexType>
           </xs:element>
