@@ -7,6 +7,7 @@ from amtt.translator.ir import component_basename
 from amtt.exporter import Exporter
 from amtt.exporter.isograph.emitter.xml import XmlEmitter
 from amtt.exporter.isograph.rbd import Rbd
+from amtt.exporter.isograph.failure_models import fm_export
 
 _logger = logging.getLogger(__name__)
 
@@ -53,8 +54,17 @@ class IsographExporter(Exporter):
         """Export the model to Isograph importable format."""
         # Normalize block names, if necessary
         self.normalize_block_names(self._translator.ir_container)
+        # Export RBD (blocks, nodes, connections)
+        self._export_rbd()
+        # Export failure model definitions
+        self._export_failure_models()
+
+    def _export_rbd(self):
         # Create block diagram from input
         rbd = Rbd()
         rbd.from_ir_container(self._translator.ir_container)
-        # Dump block diagram to output
+        # Dump reliability block diagram to output
         rbd.serialize(self._emitter)
+
+    def _export_failure_models(self):
+        fm_export(self._translator.ir_container, self._emitter)
