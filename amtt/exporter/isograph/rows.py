@@ -16,7 +16,13 @@ _logger = logging.getLogger(__name__)
 class RbdBlockRow(object):
     """Class modelling an RBD block entry."""
 
-    schema = ['Id', 'Page', 'XPosition', 'YPosition', 'Description']
+    schema = [
+        'Id',    # Block ID (must be unique)
+        'Page',  # Εnclosing block, a.k.a. page (-> RbdBlocks.Id)
+        'XPosition',    # Block X coordinate in the diagram
+        'YPosition',    # Block Y coordinate in the diagram
+        'Description',  # Block description
+    ]
 
     def __init__(self, **kwargs):
         """Initialize RbdBlockRow."""
@@ -36,7 +42,13 @@ class RbdBlockRow(object):
 class RbdRepeatBlockRow(object):
     """Class modelling a mirrored RBD block entry."""
 
-    schema = ['Id', 'Page', 'ReferenceBlock', 'XPosition', 'YPosition']
+    schema = [
+        'Id',    # Repeat block ID (must be unique)
+        'Page',  # Εnclosing block, a.k.a. page (-> RbdBlocks.Id)
+        'ReferenceBlock',  # The mirrored block (-> RbdBlocks.Id)
+        'XPosition',  # Repeat block X coordinate in the diagram
+        'YPosition',  # Repeat block Y coordinate in the diagram
+    ]
 
     def __init__(self, **kwargs):
         """Initialize RbdRepeatBlockRow."""
@@ -56,7 +68,13 @@ class RbdRepeatBlockRow(object):
 class RbdNodeRow(object):
     """Class modelling an RBD node entry."""
 
-    schema = ['Id', 'Page', 'Vote', 'XPosition', 'YPosition']
+    schema = [
+        'Id',    # Node ID (must be unique)
+        'Page',  # Εnclosing block, a.k.a. page (-> RbdBlocks.Id)
+        'Vote',  # Node voting number
+        'XPosition',  # Node X coordinate in the diagram
+        'YPosition',  # Node Y coordinate in the diagram
+    ]
 
     def __init__(self, **kwargs):
         """Initialize RbdNodeRow."""
@@ -77,8 +95,13 @@ class RbdConnectionRow(object):
     """Class modelling an RBD connection entry."""
 
     schema = [
-        'Id', 'Page', 'Type', 'InputObjectIndex', 'InputObjectType',
-        'OutputObjectIndex', 'OutputObjectType'
+        'Id',    # Connection ID (must be unique).
+        'Page',  # Εnclosing block, a.k.a. page (-> RbdBlocks.Id)
+        'Type',  # Type of connection (horizontal/vertical)
+        'InputObjectIndex',   # Index of input object
+        'InputObjectType',    # Type of input object (node,block,rpt block)
+        'OutputObjectIndex',  # Index of output object
+        'OutputObjectType',   # Type of output object (node,block,rpt block)
     ]
 
     def __init__(self, **kwargs):
@@ -94,6 +117,15 @@ class RbdConnectionRow(object):
         Not used for outputs: XML
         """
         return RbdConnectionRow(**{k: k for k in RbdConnectionRow.schema})
+
+
+class FailureModelRow(object):
+    """Class modelling a FailureModel entry."""
+
+    schema = [
+        'Id',  # Failure model ID
+        'FmMttf',  # Failure model mean time to failure (MTTF)
+    ]
 
 
 ###############################################################################
