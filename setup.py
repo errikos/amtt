@@ -49,6 +49,7 @@ class BuildStandaloneExeCommand(distutils.cmd.Command):
             '  --add-data amtt/ui/icon64x64.gif{sep}amtt/ui'.format(sep=sep),
             '  --add-data amtt/exporter/isograph/emitter/xml/template-2.1.xml'
             '{sep}amtt/exporter/isograph/emitter/xml'.format(sep=sep),
+            '  --hidden-import pyexcel_xls.xls'
             '  amtt/main.py',
             '  -i resources/icon.ico',
             '  -n amtt_{plat}-{ver}'.format(plat=sys.platform,
