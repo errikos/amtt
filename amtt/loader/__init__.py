@@ -57,7 +57,8 @@ SCHEMAS = {
     },
     InputSheet.failure_models: {
         'failurename',   # The failure model name (ID).
-        'mttf',          # The failure model Mean Time To Failure.
+        'distribution',  # The failure model distribution.
+        'parameters',    # The failure model distribution parameters.
         'standbystate',  # The failure model standby state.
     },
 }
