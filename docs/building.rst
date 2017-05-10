@@ -49,13 +49,19 @@ Another tool that greatly simplifies virtual environment management is virtualen
 Below are some generic instructions, based on the ``venv`` Python module included in the standard library (no need of any external tools).
 
 1. Choose where you want the virtual environment to be created. Let the path to that directory be ``/home/user/path/to/venv/directory``. It is important that this is a local directory, for which you have read and write rights.
-2. Create the virtual environment::
+2. Create the virtual environment:
+   ::
 
-    python -m venv path/to/venv/directory
+      python -m venv path/to/venv/directory
+
+   **Note for Windows:** Under Windows, the Python installer installs a launcher that is used to manage multiple python versions. As the |Zen| states, explicit is better than implicit. Therefore, make sure to create the virtual environment with the desired python version. For example, to use version 3.5 of Python, execute:
+   ::
+
+     py -3.5 -m venv path/to/venv/directory
 
    The above command adds all the required executables (``python``, ``pip``, etc.) in the ``bin`` directory within the virtual environment directory. From now on, whenever you need to execute ``python``, ``pip`` or any other executable, you can execute ``path/to/venv/directory/bin/python``, ``path/to/venv/directory/bin/pip``, etc. respectively.
 
-   In order to make your life easier, you can "activate" the virtual environment so that the Python-related commands executed from a shell point to the executables within the virtual environment directory. To do this, you have to "source" the activate script residing within the binaries directory of the virtual environment.
+   You need to "activate" the virtual environment so that the Python-related commands executed from a shell point to the executables within the virtual environment directory. To do this, you have to "source" the activate script residing within the binaries directory of the virtual environment.
 
    * In Unix systems (Linux, MacOS, etc.), source the activate script:
      ::
@@ -93,34 +99,36 @@ Change directory, or ``cd``, to the directory containing the source code (you wi
 
   ``pip`` is a package manager for Python packages and is automatically installed if you install Python via the Windows/MacOS installers or the Homebrew/pyenv projects. For package manager based installations in Linux, you may need to install it manually.
 
-  Once inside the source directory, execute::
+  Once inside the source directory, execute the following two commands
+  ::
 
-      pip install .
+      pip install -U pip setuptools wheel
+      pip install -e .[docs,build]
 
 
 * without ``pip``, via ``distutils``:
 
   ``distutils`` are bundled in the standard Python distribution.
 
-  1. To fetch the dependencies and build the application::
+  1. To fetch the dependencies and build the application
      ::
 
         python setup.py build
 
 
-  2. To install the application, after building::
+  2. To install the application, after building
      ::
 
         python setup.py install
 
 
-  3. In you encounter an error like the following::
+  3. In you encounter an error like the following
      ::
 
         error: The 'pyexcel' distribution was not found and is required by amtt
 
 
-     then execute the install command again::
+     then execute the install command again
      ::
 
         python setup.py install
@@ -207,4 +215,10 @@ Therefore, you can only build for Linux from a Linux installation, for MacOS fro
 
    <a href="https://virtualenvwrapper.readthedocs.io/en/latest/" target="_blank">
      virtualenvwrapper
+   </a>
+
+.. |Zen| raw:: html
+
+   <a href="https://www.python.org/dev/peps/pep-0020/" target="_blank">
+     Zen of Python
    </a>
