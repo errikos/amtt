@@ -19,6 +19,7 @@ class RbdBlockRow(object):
     schema = [
         'Id',    # Block ID (must be unique)
         'Page',  # Εnclosing block, a.k.a. page (-> RbdBlocks.Id)
+        'StandbyMode',  # Block standby mode
         'XPosition',    # Block X coordinate in the diagram
         'YPosition',    # Block Y coordinate in the diagram
         'Description',  # Block description
