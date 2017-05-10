@@ -1,4 +1,5 @@
 """User interface app module."""
+import sys
 import os
 import webbrowser
 
@@ -79,12 +80,17 @@ class Application(Frame):
         input_options.config(width=15)
         input_options.place(x=10, y=150)
 
+        if sys.platform == 'win32':
+            io_path_width = 95
+        else:
+            io_path_width = 70
+
         input_label = Label(self)
         input_label.config(text="Path:")
         input_label.place(x=15, y=180)
         input_value = StringVar(self._parent)
         input_entry = Entry(self, textvariable=input_value)
-        input_entry.config(width=95)
+        input_entry.config(width=io_path_width)
         input_entry.place(x=50, y=180)
         input_selection.trace("w", lambda *args: input_value.set(''))
 
@@ -113,7 +119,7 @@ class Application(Frame):
         output_label.place(x=15, y=300)
         output_value = StringVar(self._parent)
         output_entry = Entry(self, textvariable=output_value)
-        output_entry.config(width=95)
+        output_entry.config(width=io_path_width)
         output_entry.place(x=50, y=300)
         target_selection.trace("w", lambda *args: output_value.set(''))
 
