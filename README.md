@@ -1,6 +1,6 @@
 ## Availability Model Translation Toolkit
 
-[![Documentation Status](https://readthedocs.org/projects/amtt/badge/?version=develop)](http://amtt.readthedocs.io/en/develop/?badge=develop)
+[![Documentation Status](https://readthedocs.org/projects/amtt/badge/?version=latest)](http://amtt.readthedocs.io/en/latest/?badge=latest)
 
 
 ### Notes
