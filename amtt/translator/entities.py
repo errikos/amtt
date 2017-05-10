@@ -115,7 +115,7 @@ class ElementLogic(object):
     def __str__(self):
         """Return the string representation of the object."""
         s = 'Logic: ' + self._name
-        if self._name == 'ACTIVE':
+        if self._name.lower() in ('active', 'standby'):
             s += ', {} out of {}'.format(self._voting, self._total)
         return s
 

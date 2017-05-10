@@ -120,7 +120,7 @@ class _CompoundBlock(object):
                 to_compare = no.description if no.description else no.name
                 if to_compare == get_node_object(f, v).name:
                     logic = get_node_object(f, u).logic
-                    if logic in ('or', 'active'):
+                    if logic in ('or', 'active', 'standby'):
                         g.node[n].update(hint=Layout.parallel)
                     elif logic == 'and':
                         g.node[n].update(hint=Layout.series)
@@ -146,7 +146,7 @@ class _CompoundBlock(object):
                         diagram.add_node(b1.id, obj=b1)
                         diagram.add_node(b2.id, obj=b2)
                         diagram.add_edge(b1.id, b2.id)
-                elif logic in ('or', 'active'):
+                elif logic in ('or', 'active', 'standby'):
                     pass
                 else:  # Invalid logic
                     _logger.error('Leaf node %s has an invalid logic', o.name)
@@ -233,8 +233,8 @@ class _CompoundBlock(object):
                                 for wkc in func(d2):
                                     s2, e2 = find_edges(wkc)
                                     diagram.add_edge(e1, s2)
-            elif o.logic in ('or', 'active'):
-                # TODO: Logic is OR or ACTIVE
+            elif o.logic in ('or', 'active', 'standby'):
+                # TODO: Logic is OR or ACTIVE/STANDBY
                 pass
             g.node[group_node].update(diagram=diagram)
             g.remove_nodes_from(nodes_to_merge)
@@ -290,7 +290,7 @@ class _CompoundBlock(object):
                         # d contains nodes corresponding to the failure event
                         _logger.debug('Will apply logic: %s, to: %s.%s',
                                       uo.logic, self.name, vo.name)
-                        if uo.logic in ('or', 'active'):
+                        if uo.logic in ('or', 'active', 'standby'):
                             vote_val = None if uo.logic == 'or' \
                                 else int(uo.logic.voting)
                             node_out = _RbdNode('{}.Out'.format(self.name),
@@ -371,7 +371,7 @@ class _CompoundBlock(object):
                         ig.add_node(b1.id, obj=b1)
                         ig.add_node(b2.id, obj=b2)
                         ig.add_edge(b1.id, b2.id)
-            elif logic in ('or', 'active'):
+            elif logic in ('or', 'active', 'standby'):
                 vote_val = None if logic == 'or' else int(logic.voting)
                 node_in = _RbdNode('{}.{}'.format(self.name, 'In'), None)
                 node_out = _RbdNode('{}.{}'.format(self.name, 'Out'), vote_val)
