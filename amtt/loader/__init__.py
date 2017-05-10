@@ -43,12 +43,12 @@ and sets containing the valid columns for that table as values.
 """
 SCHEMAS = {
     InputSheet.components: {
-        'type',          # The component type (valid: compound,group,basic).
-        'name',          # The component name (ID).
-        'parent',        # The component parent (enclosing block).
-        'code',          # Component code (ID - usually shorter than name).
-        'instances',     # Number of components to define.
-        'failuremodel',  # The failure model to assign (basic components only).
+        'type',    # The component type (valid: compound,group,basic).
+        'name',    # The component name (ID).
+        'parent',  # The component parent (enclosing block).
+        'code',    # Component code (ID - usually shorter than name).
+        'instances',  # Number of components to define.
+        'logic',   # The failure model to assign (basic components only).
     },
     InputSheet.logic: {
         'type',       # The failure type (valid: inherited,failurenode).
