@@ -56,7 +56,7 @@ SCHEMAS = {
         'logic',      # Logic to assign (valid: AND,OR,ACTIVE(X,Y)).
     },
     InputSheet.failure_models: {
-        'failurename',   # The failure model name (ID).
+        'name',   # The failure model name (ID).
         'distribution',  # The failure model distribution.
         'parameters',    # The failure model distribution parameters.
         'standbystate',  # The failure model standby state.

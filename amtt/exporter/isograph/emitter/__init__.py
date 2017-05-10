@@ -26,6 +26,7 @@ class IsographEmitter(object):
         self._repeat_blocks = []
         self._nodes = []
         self._connections = []
+        self._failure_models = []
         # Initialize output identifier containers.
         self._ids = {}
         # Initialize output identifier counters.
@@ -64,6 +65,18 @@ class IsographEmitter(object):
             OutputObjectIndex=dst_index,
             OutputObjectType=dst_type)
         self._connections.append(connection)
+
+    def add_failure_model(self, name, distribution, mttf=None,
+                          beta1=None, beta2=None, beta3=None,
+                          eta1=None, eta2=None, eta3=None,
+                          gamma1=None, gamma2=None, gamma3=None):
+        """Add a Failure Model to the output."""
+        fm = FailureModelRow(
+            Id=name, FmDistribution=distribution, FmMttf=mttf,
+            FmBeta1=beta1, FmBeta2=beta2, FmBeta3=beta3,
+            FmEta1=eta1, FmEta2=eta2, FmEta3=eta3,
+            FmGamma1=gamma1, FmGamma2=gamma2, FmGamma3=gamma3)
+        self._failure_models.append(fm)
 
     @property
     def output_path(self):

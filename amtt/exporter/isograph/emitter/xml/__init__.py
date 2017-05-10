@@ -43,6 +43,7 @@ class XmlEmitter(IsographEmitter):
             ('_repeat_blocks', 'RbdRepeatBlocks'),
             ('_nodes', 'RbdNodes'),
             ('_connections', 'RbdConnections'),
+            ('_failure_models', 'FailureModels'),
         ])
         # Add dummy project ID (for the time being)
         xproject = etree.SubElement(root, 'Project')

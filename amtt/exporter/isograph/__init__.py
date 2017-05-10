@@ -58,6 +58,8 @@ class IsographExporter(Exporter):
         self._export_rbd()
         # Export failure model definitions
         self._export_failure_models()
+        # Write output file
+        self._emitter.commit()
 
     def _export_rbd(self):
         # Create block diagram from input

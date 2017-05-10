@@ -45,6 +45,7 @@ class RowsContainer(object):
         """Initialize RowsContainer."""
         self._components = []
         self._logic = []
+        self._failure_models = []
 
     def add_row(self, sheet_type, **kwargs):
         """Add a new row of type sheet_type to the container.
@@ -54,6 +55,7 @@ class RowsContainer(object):
         {   # Python-like switch :)
             InputSheet.components: self._add_component,
             InputSheet.logic: self._add_logic,
+            InputSheet.failure_models: self._add_failure_model,
         }[sheet_type](**kwargs)
 
     def _add_component(self, **kwargs):
@@ -63,6 +65,10 @@ class RowsContainer(object):
     def _add_logic(self, **kwargs):
         """Add a new logic row."""
         self._logic.append(LogicRow(**kwargs))
+
+    def _add_failure_model(self, **kwargs):
+        """Add a new failure model row."""
+        self._failure_models.append(FailureModelRow(**kwargs))
 
     @property
     def contains_templates(self):
@@ -84,3 +90,8 @@ class RowsContainer(object):
     def logic_list(self):
         """list: the "logics" list."""
         return self._logic
+
+    @property
+    def failure_models_list(self):
+        """list: the failure models list."""
+        return self._failure_models

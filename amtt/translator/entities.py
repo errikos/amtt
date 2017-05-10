@@ -3,6 +3,8 @@
 import logging
 import re
 
+from amtt.errors import TranslatorError
+
 _logger = logging.getLogger(__name__)
 
 
@@ -133,3 +135,86 @@ class ElementLogic(object):
     def total(self):
         """int: the total to vote against (X out of Y <--)."""
         return self._total
+
+
+class FailureModel(object):
+    """Class modelling a failure model."""
+
+    def __init__(self, name, distribution, parameter_spec):
+        """Initialize FailureModel.
+
+        Args:
+            name: the failure model ID.
+            distribution: the failure model distribution.
+                Currently supported values:
+                    - exponential
+                    - weibull
+                    - bi-weibull
+                    - tri-weibull
+            parameter_spec: comma separated parameter list for the specified
+                distribution. Expected in the following format:
+                    - exponential:
+                        mttf
+                    - weibull:
+                        eta1,beta1,gamma1
+                    - bi-weibull:
+                        eta1,beta1,gamma1:eta2,beta2,gamma2
+                    - tri-weibull:
+                        eta1,beta1,gamma1:eta2,beta2,gamma2:eta3,beta3,gamma3
+        """
+        self._name = name
+        self._distribution = {
+            'exponential': 'Exponential',
+            'weibull': 'Weibull',
+            'bi-weibull': 'Bi-Weibull',
+            'tri-weibull': 'Tri-Weibull',
+        }[distribution.lower()]
+        self._parse_parameters(parameter_spec)
+
+    def _parse_parameters(self, parameters):
+
+        def die():
+            errmsg = ('Parameter specification for FM: {fm} does not match '
+                      'expected format for {dist}')
+            errmsg = errmsg.format(fm=self.name, dist=self.distribution)
+            _logger.error(errmsg)
+            raise TranslatorError(errmsg)
+
+        if self.distribution.lower() == 'exponential':
+            # Handle exponential parameter specification
+            if not re.match(r'[0-9]+', parameters):
+                die()
+            self._parameters = [int(parameters)]
+        elif self.distribution.lower() == 'weibull':
+            # Handle weibull parameter specification
+            if not re.match(r'[0-9]+,[0-9]+,[0-9]+', parameters):
+                die()
+            self._parameters = [parameters.split(':')]
+        elif self.distribution.lower() == 'bi-weibull':
+            # Handle bi-weibull parameter specification
+            if not re.match(r'[0-9]+,[0-9]+,[0-9]+:'
+                            r'[0-9]+,[0-9]+,[0-9]+', parameters):
+                die()
+            self._parameters = [x.split(',') for x in parameters.split(':')]
+        elif self.distribution.lower() == 'tri-weibull':
+            # Handle tri-weibull parameter specification
+            if not re.match(r'[0-9]+,[0-9]+,[0-9]+:'
+                            r'[0-9]+,[0-9]+,[0-9]+:'
+                            r'[0-9]+,[0-9]+,[0-9]+', parameters):
+                die()
+            self._parameters = [x.split(',') for x in parameters.split(':')]
+
+    @property
+    def name(self):
+        """str: the failure model name."""
+        return self._name
+
+    @property
+    def distribution(self):
+        """str: the failure model distribution."""
+        return self._distribution
+
+    @property
+    def parameters(self):
+        """list: the failure model parameter list."""
+        return self._parameters

@@ -601,7 +601,6 @@ class Rbd(object):
                 vo = cblock.internal_graph.node[v].get('obj')
                 self._serialize_connection(cblock, cpath, cinstance, uo, vo,
                                            emitter)
-        emitter.commit()
 
     @staticmethod
     def _serialize_element(element, parent, ppath, pinstance, emitter):

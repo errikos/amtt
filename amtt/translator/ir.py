@@ -10,7 +10,7 @@ from collections import OrderedDict
 from copy import copy
 
 from amtt.errors import TranslatorError
-from .entities import SystemElement, ElementLogic
+from .entities import SystemElement, ElementLogic, FailureModel
 
 _logger = logging.getLogger(__name__)
 
@@ -85,6 +85,7 @@ class IRContainer(object):
         self._raw_input_graph = None
         self._components_graph = None
         self._failures_graph = None
+        self._failure_models = None
         # Whether the model uses template components
         self._uses_templates = False
 
@@ -94,6 +95,7 @@ class IRContainer(object):
         self._uses_templates = check_templates(row_container)
         self._build_indexes(row_container)
         self._build_graphs(row_container)
+        self._load_failure_models(row_container)
         self._loaded = True
 
     def _build_indexes(self, row_container):
@@ -306,6 +308,16 @@ class IRContainer(object):
                 _, idx_key = v.split('_')
                 f.node[v]['obj'] = self._failures_index[idx_key]
 
+    def _load_failure_models(self, row_container):
+        _logger.info('Loading failure models')
+        self._failure_models = []
+        for fm_row in row_container.failure_models_list:
+            fm = FailureModel(
+                fm_row.name,
+                fm_row.distribution,
+                str(fm_row.parameters))
+            self._failure_models.append(fm)
+
     def export_graphs(self, output_dir):
         """Export the graphs to PNG files.
 
@@ -340,6 +352,11 @@ class IRContainer(object):
     def failures_graph(self):
         """nx.DiGraph: the failures graph."""
         return self._failures_graph
+
+    @property
+    def failure_models(self):
+        """list: the failure models defined in the input model."""
+        return self._failure_models
 
     @property
     def uses_templates(self):
