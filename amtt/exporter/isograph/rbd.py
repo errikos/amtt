@@ -84,6 +84,16 @@ def parse_code(c):
         return c
 
 
+def logic_to_standby_mode(logic):
+    """Determine standby mode for given logic."""
+    if logic == 'active':
+        return 'Hot'
+    elif logic == 'standby':
+        return 'Cold'
+    else:
+        return None
+
+
 class _CompoundBlock(object):
     """Class modelling an RBD block."""
 
@@ -291,8 +301,10 @@ class _CompoundBlock(object):
                         _logger.debug('Will apply logic: %s, to: %s.%s',
                                       uo.logic, self.name, vo.name)
                         if uo.logic in ('or', 'active', 'standby'):
+                            # Determine vote value
                             vote_val = None if uo.logic == 'or' \
                                 else int(uo.logic.voting)
+                            # Create output node for parallel connection
                             node_out = _RbdNode('{}.Out'.format(self.name),
                                                 vote_val)
                             d.add_node(node_out.id, obj=node_out)
@@ -300,6 +312,9 @@ class _CompoundBlock(object):
                                     lambda x:
                                     get_node_object(d, x).name == vo.name,
                                     d.nodes_iter()):
+                                no = get_node_object(d, n)
+                                # Assign standby mode according to logic
+                                no.standby_mode = logic_to_standby_mode(logic)
                                 d.add_edge(n, node_out.id)
                         elif uo.logic == 'and':
                             for n1, n2 in window(
@@ -378,6 +393,7 @@ class _CompoundBlock(object):
                 ig.add_node(node_in.id, obj=node_in)
                 ig.add_node(node_out.id, obj=node_out)
                 for b in enumerate_blocks(root):
+                    b.standby_mode = logic_to_standby_mode(logic)
                     ig.add_node(b.id, obj=b)
                     ig.add_edge(node_in.id, b.id)
                     ig.add_edge(b.id, node_out.id)
@@ -411,12 +427,14 @@ class _CompoundBlock(object):
 class _RbdBlock(object):
     """Class modelling an RBD block instance."""
 
-    def __init__(self, name, code, type, description=None, instance=None):
+    def __init__(self, name, code, type,
+                 description=None, instance=None, standby_mode=None):
         self._name = name
         self._code = parse_code(code)
         self._type = type
         self._description = description
         self._instance = instance
+        self._standby_mode = standby_mode
 
     def __str__(self):
         return '{}.{}'.format(self.name, self.instance) \
@@ -449,6 +467,14 @@ class _RbdBlock(object):
     @instance.setter
     def instance(self, instance):
         self._instance = instance
+
+    @property
+    def standby_mode(self):
+        return self._standby_mode
+
+    @standby_mode.setter
+    def standby_mode(self, standby_mode):
+        self._standby_mode = standby_mode
 
 
 class _RbdNode(object):
@@ -618,16 +644,17 @@ class Rbd(object):
         xpos, ypos = coordinates()
 
         # Add block/node to emitter
-        kwargs = {
+        kwargs = {  # Common block/node attributes
             'Id': '.'.join(str(x) for x in element_tokens()),
             'Page': '.'.join(str(x) for x in parent_tokens()),
             'XPosition': xpos * 1.75,
             'YPosition': ypos * 1.75,
         }
-        if type(element) == _RbdBlock:
+        if type(element) == _RbdBlock:  # Specific attributes for RBD blocks
             kwargs['Description'] = element.description
+            kwargs['StandbyMode'] = element.standby_mode
             emitter.add_block(**kwargs)
-        else:
+        else:  # Specific attributes for RBD nodes
             kwargs['Vote'] = element.vote_value
             emitter.add_node(**kwargs)
 
