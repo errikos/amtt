@@ -134,10 +134,19 @@ class Application(Frame):
         exit_button = Button(self, text="Exit", command=self.quit)
         exit_button.place(x=630, y=420)
 
+        # Place graph exportation check-box
+        export_graphs = BooleanVar()
+        cbox = Checkbutton(self,
+                           text="Also export model graphs in output directory",
+                           variable=export_graphs)
+        cbox.place(x=50, y=330)
+
         def trigger_fire():
             return self.fire(input_selection.get(),
                              input_value.get(),
-                             target_selection.get(), output_value.get())
+                             target_selection.get(),
+                             output_value.get(),
+                             export_graphs.get())
 
         exit_button = Button(self, text="Translate", command=trigger_fire)
         exit_button.place(x=540, y=420)
@@ -181,7 +190,7 @@ class Application(Frame):
         output_label_value.set(selected_file_path)
 
     @staticmethod
-    def fire(input_type, input_path, target, target_path):
+    def fire(input_type, input_path, target, target_path, export_graphs):
         """Start the translation process."""
         args = Namespace()
         if input_type.lower() == 'excel':
@@ -194,7 +203,7 @@ class Application(Frame):
             raise ValueError("Unknown input type: {}".format(input_type))
         args.target = target
         args.output_basedir = target_path
-        args.export_png = False
+        args.export_png = 1 if export_graphs else 0
         execute(args)
         messagebox.showinfo('AMTT Info', 'Translation complete!')
 

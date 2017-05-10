@@ -66,7 +66,8 @@ def parse_arguments():
     parser.add_argument(
         '-x',
         '--export-graphs',
-        action='store_true',
+        action='count',
+        default=0,
         dest='export_png',
         help='Export input model graphs as PNG images and exit')
 
@@ -139,8 +140,9 @@ def execute(args):
     translator = Translator(loader, args.target, args.output_basedir)
     translator.parse_model()
     detect_graphviz()
-    if args.export_png:
+    if args.export_png > 0:  # Positive value means "also export model graphs"
         translator.export_png()
+    if args.export_png > 1:  # Value > 1 means "only export model graphs"
         sys.exit(0)
     translator.translate()
 
