@@ -140,6 +140,8 @@ Change directory, or ``cd``, to the directory containing the source code (you wi
 Running the application
 -----------------------
 
+Make sure you have installed all :ref:`rt_dependencies`.
+
 There are two ways to run the application. The easier way is via the user interface. However, you can also run the application via the command line. The installation procedure described above installs both.
 
 Open a command prompt (Windows) or a terminal (Linux/MacOS).

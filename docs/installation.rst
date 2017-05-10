@@ -6,6 +6,8 @@ If you download one of the amtt release bundles, there no need to install anythi
 However, if you prefer to build and install from source, please refer to :ref:`build_instructions`.
 
 
+.. _rt_dependencies:
+
 Runtime dependencies
 """"""""""""""""""""
 
