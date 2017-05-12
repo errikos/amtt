@@ -66,6 +66,7 @@ class RowsContainer(object):
             InputSheet.components: self._add_component,
             InputSheet.logic: self._add_logic,
             InputSheet.failure_models: self._add_failure_model,
+            InputSheet.component_failures: self._add_component_failure,
         }[sheet_type](**kwargs)
 
     def _add_component(self, **kwargs):
