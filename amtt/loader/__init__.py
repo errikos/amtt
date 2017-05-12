@@ -23,15 +23,20 @@ In order to define new loaders, the following steps are required:
 import enum
 import logging
 
+from itertools import count
 from amtt.errors import LoaderError
 
 _logger = logging.getLogger(__name__)
 
 
+_isheet_id = iter(count(start=1))
+
+
 class InputSheet(enum.Enum):
-    components = 1
-    logic = 2
-    failure_models = 3
+    components = next(_isheet_id)
+    logic = next(_isheet_id)
+    failure_models = next(_isheet_id)
+    component_failures = next(_isheet_id)
 
 
 """
