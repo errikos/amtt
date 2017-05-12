@@ -38,6 +38,15 @@ class FailureModelRow(object):
             setattr(self, arg, kwargs[arg])
 
 
+class ComponentFailureRow(object):
+    """Class modelling a ComponentFailure entry, as read from the input."""
+
+    def __init__(self, **kwargs):
+        """Initialize ComponentFailureRow."""
+        for arg in SCHEMAS[InputSheet.component_failures]:
+            setattr(self, arg, kwargs[arg])
+
+
 class RowsContainer(object):
     """Container for objects as read from the input."""
 
@@ -46,6 +55,7 @@ class RowsContainer(object):
         self._components = []
         self._logic = []
         self._failure_models = []
+        self._component_failures = []
 
     def add_row(self, sheet_type, **kwargs):
         """Add a new row of type sheet_type to the container.
@@ -69,6 +79,10 @@ class RowsContainer(object):
     def _add_failure_model(self, **kwargs):
         """Add a new failure model row."""
         self._failure_models.append(FailureModelRow(**kwargs))
+
+    def _add_component_failure(self, **kwargs):
+        """Add a new component failure row."""
+        self._component_failures.append(ComponentFailureRow(**kwargs))
 
     @property
     def contains_templates(self):
@@ -95,3 +109,8 @@ class RowsContainer(object):
     def failure_models_list(self):
         """list: the failure models list."""
         return self._failure_models
+
+    @property
+    def component_failures_list(self):
+        """list: the component failures list."""
+        return self._component_failures

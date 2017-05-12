@@ -29,6 +29,7 @@ from amtt.errors import LoaderError
 _logger = logging.getLogger(__name__)
 
 
+# Used to assign IDs to InputSheet enum members
 _isheet_id = iter(count(start=1))
 
 
@@ -66,6 +67,11 @@ SCHEMAS = {
         'parameters',    # The failure model distribution parameters.
         'standbystate',  # The failure model standby state.
     },
+    InputSheet.component_failures: {
+        'component',  # The component to assign to (->Components.Name).
+        'failuremodel',  # The failure model to assign (-> FailureModels.Name).
+        'phase',  # The simulation phase to assign for.
+    }
 }
 
 
