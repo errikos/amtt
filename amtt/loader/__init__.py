@@ -54,7 +54,6 @@ SCHEMAS = {
         'parent',  # The component parent (enclosing block).
         'code',    # Component code (ID - usually shorter than name).
         'instances',  # Number of components to define.
-        'logic',   # The failure model to assign (basic components only).
     },
     InputSheet.logic: {
         'type',       # The failure type (valid: inherited,failurenode).
