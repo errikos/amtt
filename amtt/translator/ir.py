@@ -81,6 +81,7 @@ class IRContainer(object):
         # Initialize components and failures index
         self._components_index = OrderedDict()  # (name, parent) -> element
         self._failures_index = OrderedDict()  # name -> element
+        self._failure_models_index = OrderedDict()  # name -> object
         # Declare graph structures
         self._raw_input_graph = None
         self._components_graph = None
@@ -132,6 +133,23 @@ class IRContainer(object):
             else:
                 # -- logic entry refers to failure
                 self._failures_index[row.component].logic = logic
+        # Build failure models index
+        for row in row_container.failure_models_list:
+            fm = FailureModel(row.name, row.distribution, str(row.parameters))
+            self._failure_models_index[fm.name] = fm
+        # Process failure model -> component assignments
+        for row in row_container.component_failures_list:
+            fcomp = row.component
+            fmodel = row.failuremodel
+            at_least_one = False
+            for (comp, _), elem in self._components_index.items():
+                if fcomp == comp:
+                    elem.failure_model = fmodel
+                    at_least_one = True
+            if not at_least_one:
+                _logger.warning("In FailureModel to Component assignment:")
+                _logger.warning("-> %s to %s", fmodel, fcomp)
+                _logger.warning("-> No such component: %s", fcomp)
 
     def _build_graphs(self, row_container):
         """Build all necessary graphs.
