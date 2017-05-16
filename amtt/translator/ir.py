@@ -117,6 +117,7 @@ class IRContainer(object):
             if is_component(row) and not is_template_def(row):
                 self._components_index[(row.name, row.parent)] = element
             # -- otherwise, add it to failures index
+            # -- (completely unrelated to failure models)
             elif is_failure(row):
                 self._failures_index[row.name] = element
         # Assign logic to index objects
@@ -238,7 +239,7 @@ class IRContainer(object):
         self._components_graph = g
 
     def _build_failures_graph(self):
-        """Build the failures graph."""
+        """Build the failure node/events graph."""
         def filter_parent(x):
             (name, parent), elem = x
             return name == element.parent
@@ -292,8 +293,8 @@ class IRContainer(object):
         g.node['ROOT']['obj'] = ro
         # -- assign objects for the rest of nodes
         for u, v in nx.bfs_edges(g, 'ROOT'):
-            ub = component_basename(u)
-            vb = component_basename(v)
+            ub = component_basename(u)  # Parent base name
+            vb = component_basename(v)  # Child base name
             obj = copy(self._components_index[(vb, ub)])
             obj.name = v  # Replace base name with fully qualified name
             g.node[v]['obj'] = obj
