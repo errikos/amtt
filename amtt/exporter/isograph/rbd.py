@@ -42,7 +42,7 @@ def get_node_object(g, n):
     obj = g.node[n].get('obj')
     if obj is None:
         _logger.warning('Requested an associated object from a node, however:')
-        _logger.warning('* node %s has no associated object', str(n))
+        _logger.warning('-> node %s has no associated object', str(n))
     return obj
 
 
@@ -182,7 +182,7 @@ class _CompoundBlock(object):
             o = get_node_object(g, group_node)
             if o.logic is None and g.out_degree(group_node) > 1:
                 _logger.error('In Group element: %s,', o.name)
-                _logger.error('* element has no logic, but multiple children')
+                _logger.error('-> element has no logic, but multiple children')
                 raise ExporterError('A Group element without logic ' +
                                     'cannot have multiple children')
             o.type = 'Processed'
@@ -209,7 +209,7 @@ class _CompoundBlock(object):
             if len(with_hint) > 1:
                 _logger.warning('In Group element: %s,', o.name)
                 _logger.warning(
-                    '* encountered more than one children with hint')
+                    '-> encountered more than one children with hint')
             for x in with_hint:
                 nodes_to_merge.remove(x)
                 nodes_to_merge.append(x)
@@ -218,7 +218,7 @@ class _CompoundBlock(object):
             diagram = nx.DiGraph(**GRAPH_ATTRIBUTES)
             if o.logic is None:
                 _logger.error('In Group element: %s', o.name)
-                _logger.error('* tried to merge the children of a Group ' +
+                _logger.error('-> tried to merge the children of a Group ' +
                               'without logic')
                 raise NotImplementedError(
                     'Merging Group without logic is not yet supported')
