@@ -1,5 +1,4 @@
-"""
-The loader module.
+"""The loader module.
 
 This module consists of all loaders available to the front-end.
 The currently available loaders are:
@@ -75,8 +74,7 @@ SCHEMAS = {
 
 
 class Loader(object):
-    """
-    The Loader base class. Every loader must be a subclass of this class.
+    """The Loader base class. Every loader must be a subclass of this class.
 
     A valid Loader must implement the following methods:
         - load(translator: Translator) -> None
@@ -100,6 +98,7 @@ class Loader(object):
         InputSheet.components: 'Components',
         InputSheet.logic: 'Logic',
         InputSheet.failure_models: 'FailureModels',
+        InputSheet.component_failures: 'ComponentFailures',
     }
 
     @staticmethod
