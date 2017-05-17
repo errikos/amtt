@@ -116,7 +116,8 @@ class _CompoundBlock(object):
                     name=vo.name,
                     code=vo.code,
                     type='Rbd block',
-                    description=vo.description)
+                    description=vo.description,
+                    failure_model=vo.failure_model)
                 if vo.instances > 1:
                     for i in range(1, vo.instances + 1):
                         yield _RbdBlock(**kwargs, instance=i)
@@ -143,7 +144,8 @@ class _CompoundBlock(object):
                 name=o.name,
                 code=o.code,
                 type='Rbd block',
-                description=o.description)
+                description=o.description,
+                failure_model=o.failure_model)
             if o.instances > 1:
                 if logic is None:
                     for i in range(1, o.instances + 1):
@@ -428,13 +430,15 @@ class _RbdBlock(object):
     """Class modelling an RBD block instance."""
 
     def __init__(self, name, code, type,
-                 description=None, instance=None, standby_mode=None):
+                 description=None, instance=None, standby_mode=None,
+                 failure_model=None):
         self._name = name
         self._code = parse_code(code)
         self._type = type
         self._description = description
         self._instance = instance
         self._standby_mode = standby_mode
+        self._failure_model = failure_model
 
     def __str__(self):
         return '{}.{}'.format(self.name, self.instance) \
@@ -475,6 +479,10 @@ class _RbdBlock(object):
     @standby_mode.setter
     def standby_mode(self, standby_mode):
         self._standby_mode = standby_mode
+
+    @property
+    def failure_model(self):
+        return self._failure_model
 
 
 class _RbdNode(object):
@@ -652,6 +660,7 @@ class Rbd(object):
         if type(element) == _RbdBlock:  # Specific attributes for RBD blocks
             kwargs['Description'] = element.description
             kwargs['StandbyMode'] = element.standby_mode
+            kwargs['FailureModel'] = element.failure_model
             emitter.add_block(**kwargs)
         else:  # Specific attributes for RBD nodes
             kwargs['Vote'] = element.vote_value
