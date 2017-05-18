@@ -710,11 +710,3 @@ class Rbd(object):
         identifier = '{}{}-{}'.format(prefix, src.id, dst.id)
         emitter.add_connection(identifier, parent_id, src_id, src.type, dst_id,
                                dst.type)
-
-
-# DEBUG
-def export_graph_to_png(g, name):
-    """Debug assistant method."""
-    p = nx.drawing.nx_pydot.to_pydot(g)
-    t = pydotplus.graph_from_dot_data(p.create_dot())
-    t.write_png('/home/ergys/tmp/{}.png'.format(name))
