@@ -5,8 +5,8 @@ import logging
 from amtt.errors import ExporterError
 
 from amtt.exporter.isograph import IsographExporter
-from .ir import IRContainer
-from .rows import RowsContainer
+from amtt.translator.ir import IRContainer
+from amtt.loader.rows import RowsContainer
 
 _logger = logging.getLogger(__name__)
 
