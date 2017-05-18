@@ -82,6 +82,7 @@
               <xs:sequence>
                 <xs:element name="Block" type="xs:string" minOccurs="0" />
                 <xs:element name="DependentBlock" type="xs:string" minOccurs="0" />
+                <xs:element name="Description" type="xs:string" minOccurs="0" />
                 <xs:element name="LoadFactor" type="xs:double" minOccurs="0" />
                 <xs:element name="LogicMode" type="xs:string" minOccurs="0" />
                 <xs:element name="MaxCapacity" type="xs:double" minOccurs="0" />
