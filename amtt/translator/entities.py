@@ -140,7 +140,7 @@ class ElementLogic(object):
 class FailureModel(object):
     """Class modelling a failure model."""
 
-    def __init__(self, name, distribution, parameter_spec):
+    def __init__(self, name, distribution, parameter_spec, standby_state):
         """Initialize FailureModel.
 
         Args:
@@ -170,6 +170,7 @@ class FailureModel(object):
             'tri-weibull': 'Tri-Weibull',
         }[distribution.lower()]
         self._parse_parameters(parameter_spec)
+        self._standby_state = standby_state
 
     def _parse_parameters(self, parameters):
 
@@ -218,3 +219,8 @@ class FailureModel(object):
     def parameters(self):
         """list: the failure model parameter list."""
         return self._parameters
+
+    @property
+    def standby_state(self):
+        """str: the failure model standby state."""
+        return self._standby_state
