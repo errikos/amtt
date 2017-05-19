@@ -125,18 +125,19 @@ class FailureModelRow(object):
     """Class modelling a FailureModel entry."""
 
     schema = [
-        'Id',  # Failure model ID
-        'FmDistribution',  # Failure model distribution
-        'FmMttf',  # Failure model MTTF - exponential dist. only
-        'FmBeta1',  # Failure model Beta1 - Weibull family dist. only
-        'FmBeta2',  # Failure model Beta2 - Bi-Weibull family dist. only
-        'FmBeta3',  # Failure model Beta3 - Tri-Weibull family dist. only
-        'FmEta1',  # Failure model Eta1 - Weibull family dist. only
-        'FmEta2',  # Failure model Eta2 - Bi-Weibull family dist. only
-        'FmEta3',  # Failure model Eta3 - Tri-Weibull family dist. only
-        'FmGamma1',  # Failure model Gamma1 - Weibull family dist. only
-        'FmGamma2',  # Failure model Gamma2 - Weibull family dist. only
-        'FmGamma3',  # Failure model Gamma3 - Weibull family dist. only
+        'Id',  # Failure model ID.
+        'FmDistribution',  # Failure model distribution.
+        'FmMttf',  # Failure model MTTF - exponential dist only.
+        'FmBeta1',  # Failure model Beta1 - Weibull family dist only.
+        'FmBeta2',  # Failure model Beta2 - Bi-Weibull family dist only.
+        'FmBeta3',  # Failure model Beta3 - Tri-Weibull family dist only.
+        'FmEta1',  # Failure model Eta1 - Weibull family dist only.
+        'FmEta2',  # Failure model Eta2 - Bi-Weibull family dist only.
+        'FmEta3',  # Failure model Eta3 - Tri-Weibull family dist only.
+        'FmGamma1',  # Failure model Gamma1 - Weibull family dist only.
+        'FmGamma2',  # Failure model Gamma2 - Weibull family dist only.
+        'FmGamma3',  # Failure model Gamma3 - Weibull family dist only.
+        'Remarks',  # Failure model remarks.
     ]
 
     def __init__(self, **kwargs):

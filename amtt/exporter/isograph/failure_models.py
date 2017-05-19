@@ -7,7 +7,8 @@ _logger = logging.getLogger(__name__)
 def fm_export(ir_container, emitter):
     """Export the failure models from ir_container using the given emitter."""
     for fm in ir_container.failure_models:
-        kwargs = dict(name=fm.name, distribution=fm.distribution)
+        kwargs = dict(name=fm.name, distribution=fm.distribution,
+                      remarks=fm.remarks)
         # Obtain the appropriate parameters for each distribution
         if fm.distribution.lower() == 'exponential':
             kwargs.update(mttf=fm.parameters[0])

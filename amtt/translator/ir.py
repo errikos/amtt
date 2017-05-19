@@ -133,8 +133,8 @@ class IRContainer(object):
                 self._failures_index[row.component].logic = logic
         # Build failure models index
         for row in row_container.failure_models_list:
-            fm = FailureModel(row.name, row.distribution,
-                              str(row.parameters), row.standbystate)
+            fm = FailureModel(row.name, row.distribution, str(row.parameters),
+                              row.standbystate, row.remarks)
             self._failure_models_index[fm.name] = fm
         # Process failure model -> component assignments
         for row in row_container.component_failures_list:
