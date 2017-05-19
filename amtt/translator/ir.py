@@ -86,7 +86,6 @@ class IRContainer(object):
         self._raw_input_graph = None
         self._components_graph = None
         self._failures_graph = None
-        self._failure_models = None
         # Whether the model uses template components
         self._uses_templates = False
 
@@ -96,7 +95,6 @@ class IRContainer(object):
         self._uses_templates = check_templates(row_container)
         self._build_indexes(row_container)
         self._build_graphs(row_container)
-        self._load_failure_models(row_container)
         self._loaded = True
 
     def _build_indexes(self, row_container):
@@ -135,18 +133,26 @@ class IRContainer(object):
                 self._failures_index[row.component].logic = logic
         # Build failure models index
         for row in row_container.failure_models_list:
-            fm = FailureModel(row.name, row.distribution, str(row.parameters))
+            fm = FailureModel(row.name, row.distribution,
+                              str(row.parameters), row.standbystate)
             self._failure_models_index[fm.name] = fm
         # Process failure model -> component assignments
         for row in row_container.component_failures_list:
             fcomp = row.component
             fmodel = row.failuremodel
+            if fmodel not in self._failure_models_index:
+                # warn if fmodel does not name a defined model
+                _logger.warning("In FailureModel to Component assignment:")
+                _logger.warning("-> %s to %s", fmodel, fcomp)
+                _logger.warning("-> No such failure model: %s", fmodel)
+                continue
+            # Assign failure model to all applicable components
             at_least_one = False
             for (comp, _), elem in self._components_index.items():
                 if fcomp == comp:
-                    elem.failure_model = fmodel
+                    elem.failure_model = self._failure_models_index[fmodel]
                     at_least_one = True
-            if not at_least_one:
+            if not at_least_one:  # Warn if no assignment was made
                 _logger.warning("In FailureModel to Component assignment:")
                 _logger.warning("-> %s to %s", fmodel, fcomp)
                 _logger.warning("-> No such component: %s", fcomp)
@@ -327,16 +333,6 @@ class IRContainer(object):
                 _, idx_key = v.split('_')
                 f.node[v]['obj'] = self._failures_index[idx_key]
 
-    def _load_failure_models(self, row_container):
-        _logger.info('Loading failure models')
-        self._failure_models = []
-        for fm_row in row_container.failure_models_list:
-            fm = FailureModel(
-                fm_row.name,
-                fm_row.distribution,
-                str(fm_row.parameters))
-            self._failure_models.append(fm)
-
     def export_graphs(self, output_dir):
         """Export the graphs to PNG files.
 
@@ -375,7 +371,7 @@ class IRContainer(object):
     @property
     def failure_models(self):
         """list: the failure models defined in the input model."""
-        return self._failure_models
+        return self._failure_models_index.values()
 
     @property
     def uses_templates(self):
