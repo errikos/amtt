@@ -64,6 +64,7 @@ SCHEMAS = {
         'distribution',  # The failure model distribution.
         'parameters',    # The failure model distribution parameters.
         'standbystate',  # The failure model standby state.
+        'remarks',  # Remarks on the failure model.
     },
     InputSheet.component_failures: {
         'component',  # The component to assign to (->Components.Name).
