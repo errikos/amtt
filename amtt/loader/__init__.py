@@ -37,6 +37,8 @@ class InputSheet(enum.Enum):
     logic = next(_isheet_id)
     failure_models = next(_isheet_id)
     component_failures = next(_isheet_id)
+    manpower = next(_isheet_id)
+    spares = next(_isheet_id)
 
 
 """
@@ -67,9 +69,19 @@ SCHEMAS = {
         'remarks',  # Remarks on the failure model.
     },
     InputSheet.component_failures: {
-        'component',  # The component to assign to (->Components.Name).
+        'component',  # The component to assign to (-> Components.Name).
         'failuremodel',  # The failure model to assign (-> FailureModels.Name).
         'phase',  # The simulation phase to assign for.
+    },
+    InputSheet.manpower: {
+        'manpowertype',  # Type of manpower (labor).
+        'noavailable',   # Manpower availability.
+        'cost',  # Cost of manpower.
+    },
+    InputSheet.spares: {
+        'devicetype',   # Type of device (spare).
+        'noavailable',  # Spare availability.
+        'cost',  # Cost of spare.
     }
 }
 
@@ -100,6 +112,8 @@ class Loader(object):
         InputSheet.logic: 'Logic',
         InputSheet.failure_models: 'FailureModels',
         InputSheet.component_failures: 'ComponentFailures',
+        InputSheet.manpower: 'Manpower',
+        InputSheet.spares: 'Spares',
     }
 
     @staticmethod

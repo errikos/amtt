@@ -47,6 +47,24 @@ class ComponentFailureRow(object):
             setattr(self, arg, kwargs[arg])
 
 
+class ManpowerRow(object):
+    """Class modelling a Manpower entry, as read from the input."""
+
+    def __init__(self, **kwargs):
+        """Initialize ManpowerRow."""
+        for arg in SCHEMAS[InputSheet.manpower]:
+            setattr(self, arg, kwargs[arg])
+
+
+class SpareRow(object):
+    """Class modelling a Spare entry, as read from the input."""
+
+    def __init__(self, **kwargs):
+        """Initialize SpareRow."""
+        for arg in SCHEMAS[InputSheet.spares]:
+            setattr(self, arg, kwargs[arg])
+
+
 class RowsContainer(object):
     """Container for objects as read from the input."""
 
@@ -56,6 +74,8 @@ class RowsContainer(object):
         self._logic = []
         self._failure_models = []
         self._component_failures = []
+        self._manpowers = []
+        self._spares = []
 
     def add_row(self, sheet_type, **kwargs):
         """Add a new row of type sheet_type to the container.
@@ -67,6 +87,8 @@ class RowsContainer(object):
             InputSheet.logic: self._add_logic,
             InputSheet.failure_models: self._add_failure_model,
             InputSheet.component_failures: self._add_component_failure,
+            InputSheet.manpower: self._add_manpower,
+            InputSheet.spares: self._add_spare,
         }[sheet_type](**kwargs)
 
     def _add_component(self, **kwargs):
@@ -84,6 +106,14 @@ class RowsContainer(object):
     def _add_component_failure(self, **kwargs):
         """Add a new component failure row."""
         self._component_failures.append(ComponentFailureRow(**kwargs))
+
+    def _add_manpower(self, **kwargs):
+        """Add a new manpower row."""
+        self._manpowers.append(ManpowerRow(**kwargs))
+
+    def _add_spare(self, **kwargs):
+        """Add a new spares row."""
+        self._spares.append(SpareRow(**kwargs))
 
     @property
     def contains_templates(self):
@@ -115,3 +145,13 @@ class RowsContainer(object):
     def component_failures_list(self):
         """list: the component failures list."""
         return self._component_failures
+
+    @property
+    def manpower_list(self):
+        """list: the manpower list."""
+        return self._manpowers
+
+    @property
+    def spares_list(self):
+        """list: the spares list."""
+        return self._spares
