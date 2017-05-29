@@ -20,15 +20,6 @@ class ComponentRow(object):
             setattr(self, arg, kwargs[arg])
 
 
-class LogicRow(object):
-    """Class modelling a Logic entry, as read from the input (flat)."""
-
-    def __init__(self, **kwargs):
-        """Initialize LogicRow."""
-        for arg in SCHEMAS[InputSheet.logic]:
-            setattr(self, arg, kwargs[arg])
-
-
 class FailureModelRow(object):
     """Class modelling a FailureModel entry, as read from the input (flat)."""
 
@@ -71,7 +62,6 @@ class RowsContainer(object):
     def __init__(self):
         """Initialize RowsContainer."""
         self._components = []
-        self._logic = []
         self._failure_models = []
         self._component_failures = []
         self._manpowers = []
@@ -84,7 +74,6 @@ class RowsContainer(object):
         """
         {   # Python-like switch :)
             InputSheet.components: self._add_component,
-            InputSheet.logic: self._add_logic,
             InputSheet.failure_models: self._add_failure_model,
             InputSheet.component_failures: self._add_component_failure,
             InputSheet.manpower: self._add_manpower,
@@ -94,10 +83,6 @@ class RowsContainer(object):
     def _add_component(self, **kwargs):
         """Add a new component row."""
         self._components.append(ComponentRow(**kwargs))
-
-    def _add_logic(self, **kwargs):
-        """Add a new logic row."""
-        self._logic.append(LogicRow(**kwargs))
 
     def _add_failure_model(self, **kwargs):
         """Add a new failure model row."""
@@ -130,11 +115,6 @@ class RowsContainer(object):
     def component_list(self):
         """list: the components list."""
         return self._components
-
-    @property
-    def logic_list(self):
-        """list: the "logics" list."""
-        return self._logic
 
     @property
     def failure_models_list(self):

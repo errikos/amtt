@@ -55,11 +55,7 @@ SCHEMAS = {
         'parent',  # The component parent (enclosing block).
         'code',    # Component code (ID - usually shorter than name).
         'instances',  # Number of components to define.
-    },
-    InputSheet.logic: {
-        'type',       # The failure type (valid: inherited,failurenode).
-        'component',  # Component to assign the logic to (-> Components.Name).
-        'logic',      # Logic to assign (valid: AND,OR,ACTIVE(X,Y)).
+        'logic',   # Logic to assign (valid: AND,OR,ACTIVE(X,Y),STANDBY(X,Y)).
     },
     InputSheet.failure_models: {
         'name',   # The failure model name (ID).
@@ -109,7 +105,6 @@ class Loader(object):
     # depends on the input type, we stick with "sheet" in the definition).
     _sheet_definitions = {
         InputSheet.components: 'Components',
-        InputSheet.logic: 'Logic',
         InputSheet.failure_models: 'FailureModels',
         InputSheet.component_failures: 'ComponentFailures',
         InputSheet.manpower: 'Manpower',

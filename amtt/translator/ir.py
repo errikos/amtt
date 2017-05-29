@@ -120,6 +120,8 @@ class IRContainer(object):
                 parent=row.parent,
                 code=row.code,
                 instances=row.instances)
+            # -- associate ElementLogic object
+            element.logic = ElementLogic(row.logic) if row.logic else None
             # -- if row represents a component, add it to components index
             if is_component(row) and not is_template_def(row):
                 self._components_index[(row.name, row.parent)] = element
@@ -127,18 +129,15 @@ class IRContainer(object):
             # -- (completely unrelated to failure models)
             elif is_failure(row):
                 self._failures_index[row.name] = element
-        # Assign logic to index objects
-        for row in row_container.logic_list:
-            logic = ElementLogic(row.logic)  # Create a logic object
-            if row.type.lower() == 'inherited':
-                # -- logic entry refers to component
+        # Make a second pass, to associate logic to template instances
+        for row in row_container.component_list:
+            if is_template_def(row):
+                logic = ElementLogic(row.logic) if row.logic else None
+                # -- row is a template definition,
+                # -- assign logic to every instance
                 for name, parent in self._components_index:
-                    # -- assign logic to all objects with name == row.component
-                    if name == row.component:
+                    if name == row.name:
                         self._components_index[(name, parent)].logic = logic
-            else:
-                # -- logic entry refers to failure
-                self._failures_index[row.component].logic = logic
         # Build failure models index
         for row in row_container.failure_models_list:
             fm = FailureModel(row.name, row.distribution, str(row.parameters),
