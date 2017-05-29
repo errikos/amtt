@@ -10,7 +10,7 @@ from collections import OrderedDict
 from copy import copy
 
 from amtt.errors import TranslatorError
-from .entities import SystemElement, ElementLogic, FailureModel
+from .entities import *
 
 _logger = logging.getLogger(__name__)
 
@@ -86,6 +86,9 @@ class IRContainer(object):
         self._raw_input_graph = None
         self._components_graph = None
         self._failures_graph = None
+        # Manpower/Spares containers
+        self._manpower_list = None
+        self._spares_list = None
         # Whether the model uses template components
         self._uses_templates = False
 
@@ -98,6 +101,8 @@ class IRContainer(object):
         if not self._components_index:
             _logger.warning('No component declarations found in model')
         self._build_graphs(row_container)
+        self._load_manpower(row_container)
+        self._load_spares(row_container)
         self._loaded = True
 
     def _build_indexes(self, row_container):
@@ -337,6 +342,20 @@ class IRContainer(object):
                 _, idx_key = v.split('_')
                 f.node[v]['obj'] = self._failures_index[idx_key]
 
+    def _load_manpower(self, row_container):
+        """Load Manpower definitions from row_container."""
+        self._manpower_list = []
+        for row in row_container.manpower_list:
+            mp = Manpower(row.manpowertype, row.noavailable, row.cost)
+            self._manpower_list.append(mp)
+
+    def _load_spares(self, row_container):
+        """Load Spare definitions for row_container."""
+        self._spares_list = []
+        for row in row_container.spares_list:
+            sp = Spare(row.devicetype, row.noavailable, row.cost)
+            self._spares_list.append(sp)
+
     def export_graphs(self, output_dir):
         """Export the graphs to PNG files.
 
@@ -376,6 +395,16 @@ class IRContainer(object):
     def failure_models(self):
         """list: the failure models defined in the input model."""
         return self._failure_models_index.values()
+
+    @property
+    def manpower_list(self):
+        """list: the manpower defined in the input model."""
+        return self._manpower_list
+
+    @property
+    def spares_list(self):
+        """list: the spares defined in the input model."""
+        return self._spares_list
 
     @property
     def uses_templates(self):

@@ -1,10 +1,10 @@
-"""Exports the failure models for Isograph."""
+"""Export functions for Isograph."""
 import logging
 
 _logger = logging.getLogger(__name__)
 
 
-def fm_export(ir_container, emitter):
+def fmodel_export(ir_container, emitter):
     """Export the failure models from ir_container using the given emitter."""
     for fm in ir_container.failure_models:
         kwargs = dict(name=fm.name, distribution=fm.distribution,
@@ -23,3 +23,26 @@ def fm_export(ir_container, emitter):
             kwargs.update(beta3=beta3, eta3=eta3, gamma3=gamma3)
         # Register the failure model with the emitter
         emitter.add_failure_model(**kwargs)
+
+
+def manpower_export(ir_container, emitter):
+    """Export the manpower (labor) declarations from ir_container."""
+    for mp in ir_container.manpower_list:
+        emitter.add_labor(identifier=mp.manpower_type,
+                          availability=mp.availability,
+                          cost=mp.cost)
+
+
+def spares_export(ir_container, emitter):
+    """Export the spares declarations from ir_container."""
+    for sp in ir_container.spares_list:
+        emitter.add_spare(identifier=sp.device_type,
+                          availability=sp.availability,
+                          cost=sp.cost)
+
+
+__all__ = [
+    'fmodel_export',
+    'manpower_export',
+    'spares_export',
+]

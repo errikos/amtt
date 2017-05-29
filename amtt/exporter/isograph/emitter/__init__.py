@@ -27,6 +27,8 @@ class IsographEmitter(object):
         self._nodes = []
         self._connections = []
         self._failure_models = []
+        self._labors = []
+        self._spares = []
         # Initialize output identifier containers.
         self._ids = {}
         # Initialize output identifier counters.
@@ -79,6 +81,20 @@ class IsographEmitter(object):
             FmGamma1=gamma1, FmGamma2=gamma2, FmGamma3=gamma3,
             Remarks=remarks)
         self._failure_models.append(fm)
+
+    def add_labor(self, identifier, availability, cost):
+        """Add a labor declaration to the output."""
+        labor = LaborRow(Id=identifier,
+                         NoAvailable=availability,
+                         CostRate=cost)
+        self._labors.append(labor)
+
+    def add_spare(self, identifier, availability, cost):
+        """Add a spare declaration to the output."""
+        spare = SpareRow(Id=identifier,
+                         CapacityLevel1=availability,
+                         UnitCost1=cost)
+        self._spares.append(spare)
 
     @property
     def output_path(self):

@@ -231,3 +231,86 @@ class FailureModel(object):
     def remarks(self):
         """str: the failure model remarks."""
         return self._remarks
+
+
+class Manpower(object):
+    """Class modelling a manpower declaration."""
+
+    def __init__(self, mptype, availability, cost):
+        """Initialize Manpower."""
+        self._mptype = mptype
+        try:
+            self._availability = int(availability)
+        except ValueError:
+            errstr = ('Manpower type "{}" - availability should be an integer'
+                      .format(mptype))
+            _logger.error(errstr)
+            raise TranslatorError(errstr)
+        try:
+            self._cost = float(cost)
+        except ValueError:
+            errstr = ('Manpower type "{}" - cost should be a float'
+                      .format(mptype))
+            _logger.error(errstr)
+            raise TranslatorError(errstr)
+
+    @property
+    def manpower_type(self):
+        """str: the manpower type."""
+        return self._mptype
+
+    @property
+    def availability(self):
+        """int: the available units of the manpower."""
+        return self._availability
+
+    @property
+    def cost(self):
+        """float: the manpower cost."""
+        return self._cost
+
+
+class Spare(object):
+    """Class modelling a spare declaration."""
+
+    def __init__(self, devtype, availability, cost):
+        """Initialize Spare."""
+        self._devtype = devtype
+        try:
+            self._availability = int(availability)
+        except ValueError as e:
+            errstr = ('Spare type "{}" - availability should be an integer'
+                      .format(devtype))
+            _logger.error(errstr)
+            raise TranslatorError(errstr)
+        try:
+            self._cost = float(cost)
+        except ValueError as e:
+            errstr = ('Spare type "{}" - cost should be a float'
+                      .format(devtype))
+            _logger.error(errstr)
+            raise TranslatorError(errstr)
+
+    @property
+    def device_type(self):
+        """str: the spare (device) type."""
+        return self._devtype
+
+    @property
+    def availability(self):
+        """int: the available units of the spare."""
+        return self._availability
+
+    @property
+    def cost(self):
+        """float: the spare cost."""
+        return self._cost
+
+
+__all__ = [
+    'SystemElement',
+    'ElementLogic',
+    'FailureModel',
+    'Manpower',
+    'Spare',
+]

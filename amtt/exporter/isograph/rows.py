@@ -146,6 +146,36 @@ class FailureModelRow(object):
             setattr(self, key, kwargs.get(key))
 
 
+class LaborRow(object):
+    """Class modelling a Labor entry."""
+
+    schema = [
+        'Id',
+        'NoAvailable',
+        'CostRate',
+    ]
+
+    def __init__(self, **kwargs):
+        """Initialize LaborRow."""
+        for key in LaborRow.schema:
+            setattr(self, key, kwargs.get(key))
+
+
+class SpareRow(object):
+    """Class modelling a Spare entry."""
+
+    schema = [
+        'Id',
+        'CapacityLevel1',
+        'UnitCost1',
+    ]
+
+    def __init__(self, **kwargs):
+        """Initialize SpareRow."""
+        for key in SpareRow.schema:
+            setattr(self, key, kwargs.get(key))
+
+
 ###############################################################################
 
 SCHEMA = OrderedDict([
@@ -154,6 +184,8 @@ SCHEMA = OrderedDict([
     ('RbdNodes', RbdNodeRow.schema),
     ('RbdConnections', RbdConnectionRow.schema),
     ('FailureModels', FailureModelRow.schema),
+    ('Labor', LaborRow.schema),
+    ('Spares', SpareRow.schema),
 ])
 
 __all__ = [
@@ -162,4 +194,6 @@ __all__ = [
     'RbdNodeRow',
     'RbdConnectionRow',
     'FailureModelRow',
+    'LaborRow',
+    'SpareRow',
 ]
