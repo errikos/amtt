@@ -94,6 +94,9 @@ class IRContainer(object):
         _logger.info('Importing model from rows')
         self._uses_templates = check_templates(row_container)
         self._build_indexes(row_container)
+        # Check indexes before continuing...
+        if not self._components_index:
+            _logger.warning('No component declarations found in model')
         self._build_graphs(row_container)
         self._loaded = True
 
@@ -184,6 +187,7 @@ class IRContainer(object):
         self._raw_input_graph = nx.DiGraph(
             filename=RAW_INPUT_GRAPH_FILENAME, **IR_GRAPH_ATTRIBUTES)
         rig = self._raw_input_graph
+        rig.add_node('ROOT')
         # -- Form the graph by adding edges, nodes will be added automatically
         [
             rig.add_edge(row.parent, row.name)

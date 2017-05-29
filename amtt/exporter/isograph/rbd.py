@@ -356,7 +356,11 @@ class _CompoundBlock(object):
                     graph.add_edge(point, exit_node.id)
 
         # Graph representing the block's internal structure
-        root = next(filter(lambda x: g.in_degree(x) == 0, g.nodes_iter()))
+        try:
+            root = next(filter(lambda x: g.in_degree(x) == 0, g.nodes_iter()))
+        except StopIteration:
+            self._block_graph = nx.DiGraph(**GRAPH_ATTRIBUTES)
+            return
         logic = get_node_object(g, root).logic
         for _ in filter(lambda n: get_node_object(g, n).is_type('group'), g):
             # Handle grouped elements by using failures_graph
