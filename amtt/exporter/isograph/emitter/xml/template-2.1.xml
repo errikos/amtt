@@ -74,7 +74,7 @@
                 <xs:element name="FmGamma1" type="xs:double" minOccurs="0" />
                 <xs:element name="FmGamma2" type="xs:double" minOccurs="0" />
                 <xs:element name="FmGamma3" type="xs:double" minOccurs="0" />
-                <xs:element name="Remarks" type="xs:double" minOccurs="0" />
+                <xs:element name="Remarks" type="xs:string" minOccurs="0" />
               </xs:sequence>
             </xs:complexType>
           </xs:element>
