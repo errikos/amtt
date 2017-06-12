@@ -9,6 +9,7 @@ import os
 import sys
 
 from amtt.coloredtty import ColorizingStreamHandler
+from amtt.log_count import MsgCountHandler
 from amtt.loader import *
 
 from amtt.translator import Translator
@@ -114,6 +115,14 @@ def parse_arguments():
     return args
 
 
+def setup_logging(level=logging.WARNING):
+    logging.basicConfig(
+        format='%(asctime)s - %(name)s:%(levelname)8s: %(message)s',
+        datefmt='%H:%M:%S',
+        level=level,
+        handlers=[ColorizingStreamHandler(), MsgCountHandler()])
+
+
 def main():
     args = parse_arguments()
     # configure logging
@@ -123,11 +132,7 @@ def main():
         level = logging.INFO
     else:
         level = logging.WARNING
-    logging.basicConfig(
-        format='%(asctime)s - %(name)s:%(levelname)8s: %(message)s',
-        datefmt='%H:%M:%S',
-        level=level,
-        handlers=[ColorizingStreamHandler()])
+    setup_logging(level)
     execute(args)
     sys.exit(0)
 

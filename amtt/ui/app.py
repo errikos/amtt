@@ -8,9 +8,10 @@ from tkinter import *
 from tkinter import filedialog, messagebox
 from tkinter.ttk import *
 
+from amtt.log_count import MsgCountHandler
 from amtt.loader import csv, excel
 from amtt import version
-from amtt.main import execute
+from amtt.main import execute, setup_logging
 
 WINDOW_TEXT = 'Welcome to the Availability Model Translation Toolkit!\n\n' + \
               'First, select the input type and fill the input path ' + \
@@ -204,8 +205,13 @@ class Application(Frame):
         args.target = target
         args.output_basedir = target_path
         args.export_png = 1 if export_graphs else 0
+        setup_logging()
         execute(args)
-        messagebox.showinfo('AMTT Info', 'Translation complete!')
+        warn_err_counts = '{} Warnings\n{} Errors'.format(
+            MsgCountHandler.no_warnings,
+            MsgCountHandler.no_errors)
+        messagebox.showinfo('AMTT Info',
+                            'Translation complete!\n\n' + warn_err_counts)
 
 
 class AboutDialog(object):
