@@ -146,6 +146,25 @@ class FailureModelRow(object):
             setattr(self, key, kwargs.get(key))
 
 
+class RbdBlockRuleAssignmentRow(object):
+    """Class modelling a RbdBlockRuleAssignment entry."""
+
+    schema = [
+        'Block',  # The reference block.
+        'DependentBlock',  # The dependent block.
+        'Description',     # Rule description.
+        'LoadFactor',      # Load factor (0 or 1).
+        'OutOfService',    # Out of service condition.
+        'SubIndex',  # The rule sub-index (always 0 so far).
+        'Type',  # Rule type (string).
+    ]
+
+    def __init__(self, **kwargs):
+        """Initialize RbdBlockRuleAssignmentRow."""
+        for key in RbdBlockRuleAssignmentRow.schema:
+            setattr(self, key, kwargs.get(key))
+
+
 class LaborRow(object):
     """Class modelling a Labor entry."""
 
@@ -184,6 +203,7 @@ SCHEMA = OrderedDict([
     ('RbdNodes', RbdNodeRow.schema),
     ('RbdConnections', RbdConnectionRow.schema),
     ('FailureModels', FailureModelRow.schema),
+    ('RbdBlockRuleAssignments', RbdBlockRuleAssignmentRow.schema),
     ('Labor', LaborRow.schema),
     ('Spares', SpareRow.schema),
 ])
@@ -194,6 +214,7 @@ __all__ = [
     'RbdNodeRow',
     'RbdConnectionRow',
     'FailureModelRow',
+    'RbdBlockRuleAssignmentRow',
     'LaborRow',
     'SpareRow',
 ]

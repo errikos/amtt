@@ -12,6 +12,12 @@ from amtt.exporter.isograph.emitter import IsographEmitter
 _logger = logging.getLogger(__name__)
 
 
+def tostr(var):
+    """Convert a variable to string for XML."""
+    strvar = str(var)
+    return strvar.lower() if type(var) == bool else strvar
+
+
 class XmlEmitter(IsographEmitter):
     """XML emitter for Isograph."""
 
@@ -44,6 +50,7 @@ class XmlEmitter(IsographEmitter):
             ('_nodes', 'RbdNodes'),
             ('_connections', 'RbdConnections'),
             ('_failure_models', 'FailureModels'),
+            ('_rbd_block_rule_assignments', 'RbdBlockRuleAssignments'),
             ('_labors', 'Labor'),
             ('_spares', 'Spares'),
         ])
@@ -62,7 +69,7 @@ class XmlEmitter(IsographEmitter):
                     if val is None:
                         continue
                     xcol = etree.SubElement(xml_element, col)
-                    xcol.text = str(val)
+                    xcol.text = tostr(val)
         # Write resulting XML to output path
         with open('.'.join((self.output_path, 'xml')), 'wb') as f:
             f.write(b'<?xml version="1.0" standalone="yes"?>')

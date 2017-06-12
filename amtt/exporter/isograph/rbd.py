@@ -84,14 +84,41 @@ def parse_code(c):
         return c
 
 
-def logic_to_standby_mode(logic):
-    """Determine standby mode for given logic."""
-    if logic == 'active':
-        return 'Hot'
-    elif logic == 'standby':
-        return 'Cold'
-    else:
-        return None
+class _RbdBlockRule(object):
+    """Class modelling RBD block rules."""
+
+    def __init__(self, block, load_factor, out_of_service=True):
+        """Initialize _RbdBlockRule."""
+        self._block = block
+        self._dependent_block = Rbd.root
+        self._load_factor = load_factor
+        self._out_of_service = out_of_service
+        self._type = "Set load by state"
+
+    @property
+    def block(self):
+        """str: the block the rule applies to."""
+        return self._block
+
+    @property
+    def dependent_block(self):
+        """str: the block the rule depends on."""
+        return self._dependent_block
+
+    @property
+    def load_factor(self):
+        """int: the load factor that the rule sets."""
+        return self._load_factor
+
+    @property
+    def out_of_service(self):
+        """boolean: out of service condition of the rule."""
+        return self._out_of_service
+
+    @property
+    def type(self):
+        """str: the rule type."""
+        return self._type
 
 
 class _CompoundBlock(object):
@@ -102,14 +129,42 @@ class _CompoundBlock(object):
         self._code = parse_code(code)
         self._block_graph = None
         self._dot_graph = None
+        # Dict of rules for the internal basic blocks
+        # Key: str(block) -> Value: list of rules
+        self._block_rules = {}
+
+    @staticmethod
+    def standby_mode_by_logic(logic):
+        """Determine standby mode for given logic."""
+        standby_mode = None
+        if logic == 'active':
+            standby_mode = 'Hot'
+        elif logic == 'standby':
+            standby_mode = 'Cold'
+        return standby_mode
+
+    def standby_mode_by_fm(self, logic, block):
+        """Determine standby mode for given logic and block."""
+        if block.failure_model:
+            fm = block.failure_model
+            if logic == 'and':
+                block.standby_mode = fm.standby_state
+            elif logic in ('or', 'active', 'standby'):
+                load_factor = 0 if fm.standby_state.lower() == 'cold' else 1
+                block_rule = _RbdBlockRule(block, load_factor)
+                # Add rule to rules index
+                key = str(block)
+                upd_rules = self._block_rules.get(key, []) + [block_rule]
+                self._block_rules[key] = upd_rules
 
     def generate_internal_graph(self, spec_graph, failures_graph):
         g = spec_graph
         f = failures_graph
 
         def enumerate_blocks(root):
+            """Enumerate (generate an _RbdBlock for each block within) root."""
             for u, v in nx.bfs_edges(g, root):
-                if u != root:
+                if u != root:  # Should never hold, but just in case.
                     break
                 vo = get_node_object(g, v)
                 kwargs = dict(
@@ -316,13 +371,18 @@ class _CompoundBlock(object):
                                     d.nodes_iter()):
                                 no = get_node_object(d, n)
                                 # Assign standby mode according to logic
-                                no.standby_mode = logic_to_standby_mode(logic)
+                                no.standby_mode = self.standby_mode_by_logic(
+                                    uo.logic)
+                                # Assign block rules, if necessary
+                                self.standby_mode_by_fm(uo.logic, no)
                                 d.add_edge(n, node_out.id)
                         elif uo.logic == 'and':
                             for n1, n2 in window(
                                     filter(lambda x: x.name == vo.name,
                                            d.nodes_iter()), 2):
+                                self.standby_mode_by_fm(uo.logic, n1)
                                 if n2 is not None:
+                                    self.standby_mode_by_fm(uo.logic, n2)
                                     d.add_edge(n1, n2)
 
         def finalize_graph(graph):
@@ -386,9 +446,13 @@ class _CompoundBlock(object):
             ig = nx.DiGraph(**GRAPH_ATTRIBUTES)
             if logic in ('and', 'root'):
                 for b1, b2 in window(enumerate_blocks(root)):
+                    # Assign block rules, if necessary
+                    self.standby_mode_by_fm(logic, b1)
                     if b2 is None:
                         ig.add_node(b1.id, obj=b1)
                     else:
+                        # Assign block rules, if necessary
+                        self.standby_mode_by_fm(logic, b2)
                         ig.add_node(b1.id, obj=b1)
                         ig.add_node(b2.id, obj=b2)
                         ig.add_edge(b1.id, b2.id)
@@ -399,7 +463,9 @@ class _CompoundBlock(object):
                 ig.add_node(node_in.id, obj=node_in)
                 ig.add_node(node_out.id, obj=node_out)
                 for b in enumerate_blocks(root):
-                    b.standby_mode = logic_to_standby_mode(logic)
+                    b.standby_mode = self.standby_mode_by_logic(logic)
+                    # Assign block rules, if necessary
+                    self.standby_mode_by_fm(logic, b)
                     ig.add_node(b.id, obj=b)
                     ig.add_edge(node_in.id, b.id)
                     ig.add_edge(b.id, node_out.id)
@@ -408,10 +474,6 @@ class _CompoundBlock(object):
         self._block_graph = ig
         temp = nx.drawing.nx_pydot.to_pydot(ig)
         self._dot_graph = pydotplus.graph_from_dot_data(temp.create_dot())
-        # import os
-        # p = nx.drawing.nx_pydot.to_pydot(ig)
-        # output_path = os.path.join(os.path.expanduser('~'), 'tmp', '{}.png')
-        # p.write_png(output_path.format(self.name))
 
     @property
     def name(self):
@@ -533,11 +595,22 @@ class Rbd(object):
         """Initialize Rbd."""
         self._compound_block_index = OrderedDict()
 
+    @staticmethod
+    def _set_root(component_graph):
+        """Set root component as a static attribute."""
+        g = component_graph
+        try:
+            _, Rbd.root = next(nx.bfs_edges(g,
+                                            source=nx.topological_sort(g)[0]))
+        except StopIteration:
+            Rbd.root = None
+
     def from_ir_container(self, ir_container):
         """Construct the RBD graph from the IR container provided."""
         _logger.info('Creating Isograph RBD')
         component_graph = ir_container.component_graph
         failures_graph = ir_container.failures_graph
+        self._set_root(component_graph)
         self._construct_compound_blocks(component_graph, failures_graph)
 
     def _construct_compound_blocks(self, component_graph, failures_graph):
@@ -664,13 +737,22 @@ class Rbd(object):
         if type(element) == _RbdBlock:  # Specific attributes for RBD blocks
             kwargs['Description'] = element.description
             kwargs['StandbyMode'] = element.standby_mode
-            kwargs['FailureModel'] = element.failure_model
+            kwargs['FailureModel'] = element.failure_model.name \
+                if element.failure_model is not None else None
             emitter.add_block(**kwargs)
         else:  # Specific attributes for RBD nodes
             kwargs['Vote'] = element.vote_value
             emitter.add_node(**kwargs)
 
-        return
+        if type(element) == _RbdBlock:  # Serialize block rule assignments
+            key = str(element)
+            qualified_name = '.'.join(str(x) for x in element_tokens())
+            for rule in parent._block_rules.get(key, []):
+                emitter.add_rbd_block_rule_assignment(
+                    block=qualified_name, dependent_block=Rbd.root,
+                    load_factor=rule.load_factor,
+                    out_of_service=rule.out_of_service, phase=None,
+                    type=rule.type)
 
     @staticmethod
     def _serialize_connection(parent, ppath, pinstance, src, dst, emitter):

@@ -27,6 +27,7 @@ class IsographEmitter(object):
         self._nodes = []
         self._connections = []
         self._failure_models = []
+        self._rbd_block_rule_assignments = []
         self._labors = []
         self._spares = []
         # Initialize output identifier containers.
@@ -81,6 +82,15 @@ class IsographEmitter(object):
             FmGamma1=gamma1, FmGamma2=gamma2, FmGamma3=gamma3,
             Remarks=remarks)
         self._failure_models.append(fm)
+
+    def add_rbd_block_rule_assignment(self, block, dependent_block,
+                                      load_factor, out_of_service, phase,
+                                      type, sub_index=0):
+        """Add a RbdBlockRuleAssignment to the output."""
+        rule = RbdBlockRuleAssignmentRow(
+            Block=block, DependentBlock=dependent_block, SubIndex=sub_index,
+            LoadFactor=load_factor, OutOfService=out_of_service, Type=type)
+        self._rbd_block_rule_assignments.append(rule)
 
     def add_labor(self, identifier, availability, cost):
         """Add a labor declaration to the output."""
