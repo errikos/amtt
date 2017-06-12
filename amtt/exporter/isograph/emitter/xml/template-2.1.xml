@@ -84,11 +84,8 @@
                 <xs:element name="Block" type="xs:string" minOccurs="0" />
                 <xs:element name="DependentBlock" type="xs:string" minOccurs="0" />
                 <xs:element name="LoadFactor" type="xs:double" minOccurs="0" />
-                <xs:element name="LogicMode" type="xs:string" minOccurs="0" />
-                <xs:element name="MaxCapacity" type="xs:double" minOccurs="0" />
                 <xs:element name="OutOfService" type="xs:boolean" minOccurs="0" />
                 <xs:element name="Phase" type="xs:string" minOccurs="0" />
-                <xs:element name="StandbyMode" type="xs:string" minOccurs="0" />
                 <xs:element name="SubIndex" type="xs:int" minOccurs="0" />
                 <xs:element name="Type" type="xs:string" minOccurs="0" />
               </xs:sequence>
