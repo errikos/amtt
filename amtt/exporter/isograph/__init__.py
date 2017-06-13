@@ -31,13 +31,20 @@ class IsographExporter(Exporter):
         as the components name.
         """
         g = ir_container.component_graph
+
+        def get_relabel_mapping_in_dfs_order():
+            return {
+                n: c for n, c in zip((v for _, v in nx.dfs_edges(g, 'ROOT')),
+                                     count(1))
+            }
+
         if ir_container.uses_templates:
             _logger.info('Template usage detected:')
             _logger.info(' * Normalizing component names for Isograph')
             # Create relabeling mapping.
             # Each component name will be replaced with a number (ID).
-            relabel_mapping = {n: c for n, c in zip(g.nodes_iter(), count(1))}
-            del relabel_mapping['ROOT']  # We don't want to relabel ROOT
+            relabel_mapping = get_relabel_mapping_in_dfs_order()
+            # del relabel_mapping['ROOT']  # We don't want to relabel ROOT
             # Relabel and rename components graph
             # -- copy=False means "relabel in-place"
             nx.relabel_nodes(g, relabel_mapping, copy=False)
