@@ -7,6 +7,8 @@ The currently available exporters are:
         Exports the model to Isograph importable format.
 """
 
+from datetime import datetime as dt
+
 
 class Exporter(object):
     """The Exporter base class. Every exporter must derive from this class.
@@ -18,6 +20,8 @@ class Exporter(object):
     AttributeError is raised at runtime, upon method invocation.
 
     """
+
+    timestamp = dt.now().strftime('%Y%m%d_%H%M%S_%f')
 
 
 __all__ = ['isograph']

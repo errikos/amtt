@@ -3,9 +3,9 @@
 import os
 import abc
 import logging
-from datetime import datetime as dt
 
 from amtt.exporter.isograph.rows import *
+from amtt.exporter import Exporter
 
 _logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ class IsographEmitter(object):
         # Setup output path
         nobasedir = output_dir is None
         basedir = output_dir if not nobasedir else ''
-        output_path = 'model_{}'.format(dt.now().strftime('%Y%m%d_%H%M%S_%f'))
+        output_path = 'model_{}'.format(Exporter.timestamp)
         self._output_path = os.path.join(basedir, output_path)
         _logger.info('Output path is: ' + os.path.abspath(self.output_path))
         # Initialize output row containers.
