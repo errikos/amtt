@@ -115,12 +115,21 @@ def parse_arguments():
     return args
 
 
-def setup_logging(level=logging.WARNING):
+def setup_logging(level=logging.WARNING, filepath=None):
+    handlers = [MsgCountHandler()]
+    if not filepath:
+        handlers.append(ColorizingStreamHandler())
+    else:
+        # If basedir does not exist, create it
+        basedir = os.path.dirname(filepath)
+        if not os.path.isdir(basedir):
+            os.makedirs(basedir, mode=0o755)
+        handlers.append(logging.FileHandler(filename=filepath))
     logging.basicConfig(
         format='%(asctime)s - %(name)s:%(levelname)8s: %(message)s',
         datefmt='%H:%M:%S',
         level=level,
-        handlers=[ColorizingStreamHandler(), MsgCountHandler()])
+        handlers=handlers)
 
 
 def main():

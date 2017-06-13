@@ -12,6 +12,9 @@ from amtt.log_count import MsgCountHandler
 from amtt.loader import csv, excel
 from amtt import version
 from amtt.main import execute, setup_logging
+from amtt.exporter import Exporter
+
+import logging
 
 WINDOW_TEXT = 'Welcome to the Availability Model Translation Toolkit!\n\n' + \
               'First, select the input type and fill the input path ' + \
@@ -205,13 +208,18 @@ class Application(Frame):
         args.target = target
         args.output_basedir = target_path
         args.export_png = 1 if export_graphs else 0
-        setup_logging()
+        log_file = os.path.join(
+            target_path, 'log', 'amtt_{}.log'.format(Exporter.timestamp))
+        setup_logging(level=logging.INFO, filepath=log_file)
         execute(args)
         warn_err_counts = '{} Warnings\n{} Errors'.format(
             MsgCountHandler.no_warnings,
             MsgCountHandler.no_errors)
-        messagebox.showinfo('AMTT Info',
-                            'Translation complete!\n\n' + warn_err_counts)
+        log_msg = 'Log file can be found at: "{}"'.format(log_file)
+        messagebox.showinfo(
+            'AMTT Info',
+            'Translation complete!\n\n{}\n\n{}'.format(
+                warn_err_counts, log_msg))
 
 
 class AboutDialog(object):
