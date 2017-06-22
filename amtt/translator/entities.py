@@ -192,7 +192,7 @@ class FailureModel(object):
             # Handle weibull parameter specification
             if not re.match(r'[0-9]+,[0-9]+,[0-9]+', parameters):
                 die()
-            self._parameters = [parameters.split(':')]
+            self._parameters = [parameters.split(',')]
         elif self.distribution.lower() == 'bi-weibull':
             # Handle bi-weibull parameter specification
             if not re.match(r'[0-9]+,[0-9]+,[0-9]+:'
